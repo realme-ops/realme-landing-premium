@@ -3,6 +3,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>인상 격차 진단 | 리얼미 — 3분 무료 (소득·기회편)</title>
 <meta name="description" content="같은 실력에도 첫인상에 따라 기회가 갈립니다. 3분 무료 진단으로 내 인상 격차를 확인하고, 리얼미 원데이플랜으로 그 격차를 하루에 닫으세요.">
+<link rel="canonical" href="https://premium.real-me.co.kr/">
+
+<!-- 공유 카드(카톡·문자·SNS 미리보기) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="REAL ME">
+<meta property="og:title" content="나의 인상 격차는 몇 점? | 3분 무료 진단">
+<meta property="og:description" content="같은 실력에도 첫인상에 따라 기회가 갈립니다. 3분 만에 내 인상 점수를 확인해 보세요.">
+<meta property="og:url" content="https://premium.real-me.co.kr/">
+<meta property="og:image" content="https://premium.real-me.co.kr/images/img-01.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- 트래킹 ID (GTM 미사용, 단일 캠페인 랜딩) -->
+<script>
+  window.REALME_CONFIG = {
+    GA4_ID:        "G-TYWS49LKCM",
+    META_PIXEL_ID: "468864818533646"
+  };
+</script>
+<!-- Google Analytics 4 -->
+<script>
+(function(){var id=window.REALME_CONFIG.GA4_ID;if(!id||id.indexOf('X')>-1)return;
+var s=document.createElement('script');s.async=true;
+s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.appendChild(s);
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+window.gtag=gtag;gtag('js',new Date());gtag('config',id);})();
+</script>
+<!-- Meta Pixel -->
+<script>
+(function(){var id=window.REALME_CONFIG.META_PIXEL_ID;if(!id||id.indexOf('0000000000000000')===0)return;
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');fbq('init',id);fbq('track','PageView');})();
+</script>
+<!-- 이벤트 트래킹 공용 함수 -->
+<script>
+(function(){
+  var GROUP='premium_quiz';
+  function base(extra){var o={landing:'premium',page_group:GROUP};for(var k in extra)o[k]=extra[k];return o;}
+  window.trk=function(name,extra){
+    var p=base(extra);
+    try{if(window.gtag)gtag('event',name,p);}catch(e){}
+    try{if(window.fbq)fbq('trackCustom',name,p);}catch(e){}
+  };
+  // 화면 전환을 GA4 가상 페이지뷰로 기록 (단일 페이지라 단계별 분리가 안 되므로)
+  window.vpv=function(path,title){
+    try{if(window.gtag)gtag('event','page_view',{page_location:location.origin+path,page_path:path,page_title:title||document.title,landing:'premium',page_group:GROUP});}catch(e){}
+  };
+  // 유입 UTM 보존 → 아웃바운드 링크에 그대로 넘김
+  window.inboundParams=function(){
+    try{
+      var q=new URLSearchParams(location.search),o={};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid'].forEach(function(k){if(q.get(k))o[k]=q.get(k);});
+      return o;
+    }catch(e){return {};}
+  };
+})();
+</script>
+
 <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -120,7 +182,7 @@
 
     <div id="couponBox" class="hidden">
       <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>입력하신 번호로 할인쿠폰을 문자로 보냈습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
-      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
+      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/" onclick="trkCTA()" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
       <button class="cta block secondary" style="margin-top:10px" onclick="share(this)">주변 전문직 지인에게 진단 추천하기</button>
       
     </div>
@@ -203,7 +265,7 @@ const QUESTIONS=[
 ];
 let idx=0, incomeMid=125000000;
 const answers=new Array(QUESTIONS.length).fill(null);
-function start(){document.getElementById('landing').classList.add('hidden');document.getElementById('quiz').classList.remove('hidden');idx=0;render();window.scrollTo({top:0,behavior:'auto'});try{if(window.nav)window.nav('quiz',true);if(window.saveState)window.saveState();}catch(e){}}
+function start(){trk('quiz_start',{variant:(typeof variant!=='undefined'?variant:'')});vpv('/premium/quiz','프리미엄 진단 - 문항');document.getElementById('landing').classList.add('hidden');document.getElementById('quiz').classList.remove('hidden');idx=0;render();window.scrollTo({top:0,behavior:'auto'});try{if(window.nav)window.nav('quiz',true);if(window.saveState)window.saveState();}catch(e){}}
 function render(){const Q=QUESTIONS[idx];
   document.getElementById('pbar').style.width=((idx+1)/QUESTIONS.length*100)+'%';
   document.getElementById('pstep').textContent=(idx+1)+' / '+QUESTIONS.length;
@@ -211,7 +273,7 @@ function render(){const Q=QUESTIONS[idx];
   const b=document.getElementById('qbody');
   b.innerHTML='<div class="qnum">Q'+(idx+1)+'</div><div class="q">'+Q.q+'</div>'+(Q.help?'<div class="qhelp">'+Q.help+'</div>':'')+'<div class="opts">'+Q.o.map((op,i)=>'<button class="opt'+(answers[idx]===i?' sel':'')+'" onclick="choose('+i+')"><span class="dot"></span><span>'+op.t+'</span></button>').join('')+'</div>';
   void b.offsetWidth;b.classList.add('fadein');}
-function choose(i){if(window.__cl)return;window.__cl=true;answers[idx]=i;render();try{if(window.saveState)window.saveState();}catch(e){}setTimeout(()=>{window.__cl=false;if(idx<QUESTIONS.length-1){idx++;render();try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}}else finish();},230);}
+function choose(i){if(window.__cl)return;window.__cl=true;answers[idx]=i;trk('quiz_answer',{step:idx+1,question:'Q'+(idx+1)});render();try{if(window.saveState)window.saveState();}catch(e){}setTimeout(()=>{window.__cl=false;if(idx<QUESTIONS.length-1){idx++;render();try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}}else finish();},230);}
 function back(){if(idx>0){idx--;render();}}
 function scores(){let s={status:0,image:0},m={status:0,image:0};
   QUESTIONS.forEach((Q,qi)=>{if(Q.axis==='intent')return;const best=Math.max(...Q.o.map(o=>o.p));m[Q.axis]+=best;const a=answers[qi];if(a!=null){s[Q.axis]+=Q.o[a].p;if(Q.key==='income')incomeMid=Q.o[a].mid;}});
@@ -229,6 +291,8 @@ function finish(){
   document.getElementById('pbar').style.width='100%';
   const {st,im}=scores(),intent=intentVal(),p=persona(st,im);
   const rank=Math.max(1,Math.round((100-st)*0.8)+1);
+  trk('quiz_complete',{score:im,status:st,intent:intent,persona:p.name||''});
+  vpv('/premium/result','프리미엄 진단 - 결과');
   document.getElementById('quiz').classList.add('hidden');
   const R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
   document.getElementById('typeName').textContent='「'+p.name+'」';
@@ -243,18 +307,20 @@ function finish(){
   try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
-function toForm(){document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
+function toForm(){trk('sticky_cta_click',{target:'coupon_form'});document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
 function issueCoupon(){
   const btn=document.getElementById('submitBtn');
   const ph=document.getElementById('fPhone'), pe=document.getElementById('phoneErr'), ae=document.getElementById('agreeErr');
   ph.classList.remove('err'); if(pe)pe.style.display='none'; if(ae)ae.style.display='none';
-  if(ph.value.replace(/\D/g,'').length<9){ph.classList.add('err'); if(pe)pe.style.display='block'; ph.focus(); return;}
+  if(ph.value.replace(/\D/g,'').length<9){ph.classList.add('err'); if(pe)pe.style.display='block'; ph.focus(); trk('form_error',{field:'phone'}); return;}
   const ag=document.getElementById('fAgree'), aw=document.getElementById('agreeWrap'); aw.classList.remove('err');
-  if(!ag.checked){aw.classList.add('err'); if(ae)ae.style.display='block'; return;}
+  if(!ag.checked){aw.classList.add('err'); if(ae)ae.style.display='block'; trk('form_error',{field:'agree'}); return;}
   if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
   const code='REALME-'+Math.floor(1000+Math.random()*9000);
   document.getElementById('couponCode').textContent=code;
-  const cl=document.getElementById('checkoutLink'); if(cl)cl.href='https://impact-me.real-me.co.kr/secret-checkout?coupon='+encodeURIComponent(code);
+  const cl=document.getElementById('checkoutLink'); if(cl)cl.href=discountURL(code);
+  try{ if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code}); if(window.fbq)fbq('track','CompleteRegistration',{content_name:'premium_coupon'}); }catch(e){}
+  vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
   document.getElementById('lockBox').classList.add('hidden');
   const po=document.getElementById('preoffer'); if(po)po.classList.add('hidden');
   document.getElementById('persuade').classList.add('hidden');
@@ -267,6 +333,7 @@ function issueCoupon(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function restart(){
+  trk('quiz_restart');
   try{for(var i=0;i<answers.length;i++)answers[i]=null;}catch(e){}
   idx=0;
   var byId=function(id){return document.getElementById(id);}, q=function(s){return document.querySelector(s);};
@@ -279,13 +346,42 @@ function restart(){
   try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
+/* ===== 할인랜딩 이동 + 공유 ===== */
+// 쿠폰 CTA가 향하는 곳: 50% 할인 랜딩 (결제/예약 페이지 아님)
+function discountURL(code){
+  var q=window.inboundParams?window.inboundParams():{};
+  var p=[];
+  p.push('utm_source=premium');
+  p.push('utm_medium=quiz');
+  p.push('utm_campaign=premium_gap');
+  p.push('utm_content=coupon_cta');
+  p.push('landing=premium');
+  if(code)p.push('coupon='+encodeURIComponent(code));
+  // 유입 광고 정보는 ad_* 로 따로 실어 보냄 (할인랜딩이 utm_source를 A/B 변수로 덮어쓰기 때문)
+  for(var k in q)p.push('ad_'+k.replace('utm_','')+'='+encodeURIComponent(q[k]));
+  return 'https://impact-me.real-me.co.kr/?'+p.join('&');
+}
+function trkCTA(){
+  var code=(document.getElementById('couponCode')||{}).textContent||'';
+  trk('cta_coupon_click',{destination:'discount50',coupon:code});
+  try{if(window.fbq)fbq('track','Lead',{content_name:'premium_coupon_cta'});}catch(e){}
+}
 function share(btn){
-  var url='https://premium.real-me.co.kr/';
-  var text='나의 인상 격차는? 3분 무료 진단 →';
-  if(navigator.share){ navigator.share({title:'인상 격차 진단', text:text, url:url}).catch(function(){}); return; }
+  var url='https://premium.real-me.co.kr/?utm_source=share&utm_medium=referral&utm_campaign=premium_gap';
+  var title='인상 격차 진단 · 3분 무료';
+  var text='같은 실력인데 첫인상에서 손해 보고 있진 않은지, 3분이면 나옵니다. 내 인상 점수 확인 →';
+  function done(method){ trk('share_success',{method:method}); }
   function ok(){ if(btn){var o=btn.getAttribute('data-o')||btn.textContent; btn.setAttribute('data-o',o); btn.textContent='진단 링크가 복사되었습니다 ✓'; btn.disabled=true; setTimeout(function(){btn.textContent=o; btn.disabled=false;},2200);} }
-  function legacy(){ try{var ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); }catch(e){ window.prompt('아래 진단 링크를 복사해 공유하세요', url); } }
-  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(ok).catch(legacy); }
+  function legacy(){ try{var ta=document.createElement('textarea'); ta.value=text+'\n'+url; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); done('clipboard_legacy'); }catch(e){ window.prompt('아래 진단 링크를 복사해 공유하세요', url); done('prompt'); } }
+
+  trk('share_click',{method:navigator.share?'native':'clipboard'});
+  if(navigator.share){
+    navigator.share({title:title, text:text, url:url})
+      .then(function(){done('native');})
+      .catch(function(){ trk('share_cancel',{method:'native'}); });
+    return;
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text+'\n'+url).then(function(){ok();done('clipboard');}).catch(legacy); }
   else legacy();
 }
 paintHero();
