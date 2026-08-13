@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인상 격차 진단 | 리얼미 — 3분 무료 (소득·기회편)</title>
+<meta name="description" content="같은 실력에도 첫인상에 따라 기회가 갈립니다. 3분 무료 진단으로 내 인상 격차를 확인하고, 리얼미 원데이플랜으로 그 격차를 하루에 닫으세요.">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="topbar"><div class="in">
+  <span></span><div class="brand"><img class="blogo" src="images/logo.png" alt="REAL ME"><span class="tagline">personal visual directing</span></div>
+</div></div>
+
+<!-- ===== 미니 히어로 (광고 직행) ===== -->
+<main id="landing"><section class="hero"><div class="wrap">
+  <div class="kicker" id="h-kicker">돈 써도 주변 반응 그대로인 남자만 테스트해보세요</div>
+  <h1 id="h-head">실력과 <span class="hl">첫인상</span> 사이,<br>당신의 <span class="hl">격차</span>는 몇 점입니까?</h1>
+  <p class="sub" id="h-sub">같은 실력에도 첫인상에 따라 기회와 소득이 갈립니다. 3분 만에 내 인상 격차를 확인하세요.</p>
+  <div class="cta-wrap">
+    <button class="cta" id="h-cta" onclick="start()">내 인상 격차 확인하기</button>
+    <div class="micro">결과 즉시 확인 · 익명 진단 · 가입 불필요</div>
+  </div>
+  <div class="heromock">
+    <div class="cap">인상 격차 진단 결과 예시</div>
+    <div class="num">34<small> / 100</small></div>
+    <div class="mmeter"><div class="t"><span>실력·지위</span><span>상위 3%</span></div><div class="mtrack"><i class="s" style="width:97%"></i></div></div>
+    <div class="mmeter"><div class="t"><span>현재 인상 점수</span><span>34 / 100</span></div><div class="mtrack"><i class="g" style="width:34%"></i></div></div>
+  </div>
+  <div class="heroproof">이미 <b>1,200명+</b> 전문직이 진단했습니다 · 의료 · 법조 · 경영 · 금융</div>
+</div></section></main>
+
+<!-- ===== 진단 ===== -->
+<div id="quiz" class="diag hidden"><div class="card">
+  <div class="progress"><div class="bar"><i id="pbar" style="width: 100%;"></i></div><div class="stepn" id="pstep">9 / 9</div></div>
+  <div id="qbody" class="fadein"><div class="qnum">Q9</div><div class="q">"능력·지위에 비해 스타일이 좀 아쉽다" — 이런 말, 들어본 적 있으세요?</div><div class="opts"><button class="opt" onclick="choose(0)"><span class="dot"></span><span>오히려 스타일 칭찬을 듣는다</span></button><button class="opt" onclick="choose(1)"><span class="dot"></span><span>들어본 적 없다</span></button><button class="opt sel" onclick="choose(2)"><span class="dot"></span><span>가끔 듣는다</span></button><button class="opt" onclick="choose(3)"><span class="dot"></span><span>종종 듣는다</span></button></div></div>
+  <div class="navq"><button class="back" id="backBtn" onclick="back()">← 이전</button><span></span></div>
+</div></div>
+
+<!-- ===== 결과 + 오퍼 + 설득 ===== -->
+<div id="result" class="diag hidden">
+  <div class="card">
+    <div class="requiz-wrap"><button type="button" class="requiz" onclick="restart()">← 다시 진단</button></div>
+    <div class="kicker center">인상 격차 진단 결과</div>
+    <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="iciNum">22</span><span class="unit"> / 100</span></div></div>
+    <div class="typeb" id="typeName">「재정비형」</div>
+    <div class="verdict" id="verdict">기반을 더 살리고 표현 전략을 전면 재정비하면 체감 인상이 크게 달라집니다.</div>
+    <div class="meters">
+      <div class="meter"><div class="top"><span class="lbl">이미 갖춘 실력·지위</span><span class="val" id="statusVal" style="color:var(--good)">상위 39%</span></div><div class="track"><div class="fill status" id="statusFill" style="width: 53%;"></div></div></div>
+      <div class="meter"><div class="top"><span class="lbl">현재 인상 점수</span><span class="val" id="imageVal" style="color:var(--gold-soft)">22 / 100</span></div><div class="track"><div class="fill image" id="imageFill" style="width: 22%;"></div></div></div>
+    </div>
+    <!-- 위협형 금액 프레임 블록 제거 (offers 스킬 가이드) -->
+    <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
+    <div class="lanes">
+      <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
+      <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-02.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+    </div>
+
+    <!-- 투자 리프레임 -->
+    <div class="invest">
+      <div class="k">진단이 끝났습니다. 이제 중요한 건 이겁니다</div>
+      <p>첫인상은 소개·데이트마다 가장 먼저 읽히는 <b>자산</b>입니다. 진단이 찾은 <b>인상 격차</b>는, 이미 가진 조건이 아직 첫인상으로 다 표현되지 않았다는 겁니다. 그래서 이미지 관리는 '비용'이 아니라 <b>한 번 만들어 평생 쓰는 투자</b>입니다 — 얻은 기준과 사진은 그대로 남으니까요.</p>
+    </div>
+
+    <!-- 원데이플랜 단일 오퍼 -->
+    <div class="proofshot">
+      <img src="images/img-01.jpg" alt="비즈니스 미팅에서의 첫인상">
+    </div>
+    <p class="proofcap">" 덕분에, 남자들을 압도하는 인상을 얻었습니다. "</p>
+    <div class="proofstory"><span class="pw">벤처기업 대표 · 30대</span><span class="ps-line"><b class="ps-bl">Before</b>결혼정보회사에 등록해두고 옷은 명품 브랜드만 사모았는데, 업체측에서 여성분들이 제가 좀 더 꾸몄으면 좋겠다고 말했대요. 아, 뭘 어디서부터 해야 할지 답답했어요.</span><span class="ps-line"><b class="ps-al">After</b>인상 디렉팅 이후, 연애까지 해결 됐고, 뭔가 모르게 분위기가 달라졌다는 말 들어요. 고민이 사라진 덕에 일에 집중해 큰 계약 기회까지 잡았습니다. ㅎㅎ</span></div>
+    <div id="preoffer">
+    <div class="sectlabel">원데이플랜, 하루면 끝납니다.</div>
+    <h2>말로 하는 조언이 아니라, 직접 입어보는 하루입니다</h2>
+    <div class="hallbanner">
+      <img src="images/img-02.jpg" alt="리얼미 쇼룸 복도">
+      <div class="grad"></div>
+      <div class="cap"><div class="k">REALME SHOWROOM</div><h3>한 공간에서<br>사진 까지.&nbsp;</h3><p>잠실 1:1 프라이빗 라운지</p></div>
+    </div>
+    <div class="steps">
+      <div class="stepc"><div class="n">1</div><b>인상 격차 정밀 진단</b><p>실제 내 첫인상이 어떻게 읽히는지, 얼굴형·체형·헤어 조합을 객관적으로 확인</p></div>
+      <div class="stepc"><div class="n">2</div><b>1:1 착장 디렉팅</b><p>내 인상을 살리는 색·핏을 직접 입어보며 익혀 스타일 방향 기준 확보</p></div>
+      <div class="stepc"><div class="n">3</div><b>자연스러운 사진 촬영</b><p>바뀐 인상을 자연스러운 3~5컷으로 남겨 SNS·프로필에 바로 업데이트</p></div>
+    </div>
+
+    <div class="sectlabel">인상 격차가 맞춰진 남성들은 ?</div>
+    <h2>스펙은 그대로. 첫인상만 바뀌었습니다</h2>
+    <div class="tcards">
+      <div class="tcard"><div class="tavatar"><img src="images/img-03.jpg" alt=""></div><div class="tbody"><div class="ttag">📷 사진·프로필</div><p class="tq">"사진 보고 신뢰 가서 문의 했는데, '실제로 뵙고 나니 선택하길 잘했다'는 소리를 들었어요."</p><div class="tby">— 30대 · 변호사</div></div></div>
+      <div class="tcard"><div class="tavatar"><img src="images/img-04.jpg" alt=""></div><div class="tbody"><div class="ttag">🤝 기회 확장</div><p class="tq">"중요한 계약에서도 첫 인상에서 밀린다는 느낌이 없어졌습니다."</p><div class="tby">— 30대 · 법인사업</div></div></div>
+      <div class="tcard"><div class="tavatar"><img src="images/img-05.jpg" alt=""></div><div class="tbody"><div class="ttag">🗣 주변 반응</div><p class="tq">"업계에서 후배들이 저를 자기 관리도 잘하는 형이라고 소개했다네요."</p><div class="tby">— 30대 · 회계사</div></div></div>
+    </div>
+    </div>
+    <div class="bridge"><div class="k">그 첫 투자</div><h2>원데이플랜 — 하루로 인상 격차를 닫습니다</h2><div class="osub">사진은 오늘 밤 바로 프로필에, 안목은 다음 쇼핑부터 평생.</div></div>
+    <div class="locked" id="lockBox">
+      <div class="head"><b>🔑 원데이플랜 · 1:1 프라이빗 라운지 (90분)</b><span class="anchor">개별가 합계 ₩820,000 · 정가 <s>₩700,000</s> → 진단자 <em>₩350,000</em></span></div>
+      <div class="body">
+        <ul class="stack">
+          <li><span class="t">인상 격차 정밀 진단 (파인딩플랜 포함)</span><span class="v">₩150,000 상당</span></li>
+          <li><span class="t">1:1 착장 디렉팅 (내게 맞는 색·핏, 혼자서도 재현)</span><span class="v">₩300,000 상당</span></li>
+          <li><span class="t">자연스러운 최신 사진 3~5컷 (SNS·프로필에 바로 사용)</span><span class="v">₩250,000 상당</span></li>
+          <li class="bonus"><span class="t">[보너스] 연애·이성 관계 전략 상담</span><span class="v">₩120,000 → 무료</span></li>
+        </ul>
+        <div class="roi">한 번의 디렉팅으로 얻는 기준과 사진은 <b>평생 다시 씁니다</b>&nbsp;</div>
+        <div class="guarantee">🛡 방문 상담 후 불만족 시 <b>예약금 전액 환불</b> · 부담은 예약금뿐입니다</div>
+        <div class="coupon">
+          <div class="ctop"><span class="cbadge">인상 격차 진단 완료자 전용</span><span class="cpct">50%</span></div>
+          <div class="cbody"><b>쇼룸 첫 방문 할인쿠폰</b><div class="cprice">정가 <s>₩700,000</s> → <em>₩350,000</em> <b class="coff">50% · ₩350,000 할인</b><br>예약금 ₩20,000은 방문 시 결제액에서 차감</div></div>
+          <div class="cexp">1:1 프라이빗 세션이라 주말 예약 가능 인원이 많지 않습니다.</div>
+        </div>
+        <div class="field"><label>할인쿠폰 받을 연락처</label><input id="fPhone" placeholder="010-0000-0000" inputmode="tel"></div>
+        <div class="ferr" id="phoneErr">연락처를 정확히 입력해 주세요.</div>
+        <label class="consent" id="agreeWrap"><input type="checkbox" id="fAgree"><span><span class="req">[필수]</span> 개인정보 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=policy" target="_blank" rel="noopener" class="clink">약관 보기</a> <span style="opacity:.75">(쇼룸 예약 안내 목적 · 언제든 삭제 가능)</span></span></label>
+        <div class="ferr" id="agreeErr">개인정보 수집·이용에 동의해 주세요.</div>
+        <button class="cta block" id="submitBtn" onclick="issueCoupon()">쇼룸 예약을 위한 할인쿠폰 발급받기</button>
+        <div class="micro" style="text-align:center">진단 결과는 익명으로 처리됩니다 · 입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
+        <div class="risk"><span>✅ 진단자 <b>전용가</b></span><span>✅ 방문 후 불만족 시 <b>환불</b></span><span>✅ <b>1:1 프라이빗</b></span></div>
+        <div class="proof">👤 이미 <b>1,200명+</b> 전문직이 리얼미를 다녀갔습니다</div>
+        <div class="downsell">외모에 돈 쓰고도 주변 반응 없었던 분만 예약하세요.</div>
+      </div>
+    </div>
+
+    <div id="couponBox" class="hidden">
+      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>입력하신 번호로 할인쿠폰을 문자로 보냈습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
+      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
+      <button class="cta block secondary" style="margin-top:10px" onclick="share(this)">주변 전문직 지인에게 진단 추천하기</button>
+      
+    </div>
+  </div>
+
+  <!-- 결과 하단 설득 -->
+  <div id="persuade" class="fadein">
+    <div class="sectlabel">실제 회원 사례</div>
+    <div class="baFeature" style="margin-top:8px">
+      <div class="pair">
+        <figure><figcaption>Before</figcaption><img src="images/img-06.jpg" alt="디렉팅 전"></figure>
+        <figure><figcaption>After</figcaption><img src="images/img-07.jpg" alt="디렉팅 후"></figure>
+      </div>
+      <div class="cap">"전문 사진을 찍어도 아저씨 같은 느낌이 있었는데, 입사 동기들이 저만 회춘한 것 같다고 뭐가 달라진 거냐 하네요."</div>
+      <div class="by">— IT 대기업 · 30대 · 디렉팅 후 셀프 스타일링&nbsp;</div>
+    </div>
+    <div class="sectlabel">실제 변화</div>
+    <h2>같은 사람입니다. 첫인상만 제자리를 찾았을 뿐.</h2>
+    <div class="baFeature">
+      <div class="pair">
+        <figure class="editimg"><figcaption>Before</figcaption><img src="images/img-08.jpg" alt="디렉팅 전"></figure>
+        <figure class="editimg"><figcaption>After</figcaption><img src="images/img-09.jpg" alt="디렉팅 후"></figure>
+      </div>
+      <div class="cap">" 연애 때문에 외모를 관리하려 한건데, 작년의 그 선택이 터닝 포인트였습니다.<br>제대로 스타일 잡고 살아가니, 로망 이던 빅펌 이직도 성공입니다. ㅎㅎㅎㅎ "</div>
+      <div class="by">— 전문직(금융권)&nbsp;· 20대 후반&nbsp;· 디렉팅 후 6개월 경과&nbsp;</div>
+    </div>
+    <div class="baverify">&nbsp;보정 없이, 밀착 디렉팅 과정에서 진행된 스타일링 후 찍어드린 사진입니다.</div>
+
+    <div class="sectlabel">자주 묻는 질문</div>
+    <div style="margin-top:14px">
+      <details><summary>외모에 시간과 돈을 꼭 써야 하나요?</summary><p>리얼미는 남자의 외모 관리에 '적정선'이 있다고 봅니다. 필요한 선까지만 맞추고 본업에 집중하시면 됩니다. 이미 커리어에 대부분의 시간을 쏟는 분이라면 옷·헤어·사진을 직접 공부하며 시행착오할 이유가 없습니다. 방향만 제대로 잡으면 그다음은 각 분야 전문가에게 맡기면 됩니다.</p><p>얼굴·헤어·옷이 합쳐져 만드는 것이 '인상'이라는 점에 동의하신다면, 만족을 드릴 수 있다 자신합니다.</p></details>
+      <details><summary>좋은 옷 사고 미용실 가는 것과 뭐가 다른가요?</summary><p>좋은 옷이나 헤어 자체가 핵심이 아닙니다. 그것들이 '내 인상에 맞느냐'가 핵심입니다. 체형·얼굴·헤어 에 따라 같은 옷도 전혀 다른 결과를 냅니다. 리얼미는 유행, 패션지식을 알려드리지 않습니다. "개인에게 어떤 이미지가 가장 맞는지"를 먼저 찾고, 그 답을 실제 옷·헤어·사진으로 구현합니다. 그래서 무작정 쇼핑하는 것보다 시행착오를 크게 줄입니다.</p></details>
+      <details><summary>전문가한테 맡기는 게, 좀 그렇지 않나요?</summary><p>세무는 세무사, 건강은 주치의에게 맡기시죠. 첫인상도 같습니다. 혼자 찾아 헤매는 것보다 전문가에게 맡기는 게 더 빠르고, 더 유능한 선택입니다.</p></details>
+      <details><summary>확 바뀌면 오히려 부담스러운데요.</summary><p>변신이 목표가 아닙니다. '원래 그런 사람'처럼, 언제나 정돈된 인상을 유지하시도록 도와드립니다. 티 나는 연출이 아니라 애쓰지 않아도 유지할 수 있는 스타일링, 보정입니다. 화려한 스타일링이나, 실물과 다른 보정된 사진은 본질의 변화가 아닙니다.</p></details>
+      <details><summary>가서 별로면 어떻게하죠?</summary><p>상담 후 불만족하시면 예약금은 전액 환불됩니다. 부담되면 30분 인상 진단(파인딩플랜)부터 시작하셔도 됩니다. 미용실이나 사진 촬영에 비용 지출을 했던 분들이라면, ' 인상 ' 이라는 분위기를 만드는게 하나 하나 바꿔서 되는 게 아니란 걸 아실 겁니다.&nbsp;</p></details>
+      <details><summary>350,000원, 비싸지 않나요?</summary><p>누가 추천해서 샀던 70만원짜리 셔츠, 사놓고 안 입고 계시지 않나요? 결국 평가가 좋았던 비슷한 착장만 고르시죠? 얻은 기준과 사진은 한 번 만들면 평생 다시 씁니다. 맞지 않는 옷을 살 돈은 확실히 아껴드립니다.&nbsp;</p></details>
+      <details><summary>1:1인가요? 개인정보도 걱정돼요.</summary><p>1:1 프라이빗 라운지라 다른 방문객과 마주치지 않습니다. 체형 고민 등도 편하게 소통하실 수 있습니다. 신체에서 고민되는 영역을 가장 효과적으로 커버할 수 있는 건, 쇼룸을 가진 저희가 잘 합니다.</p></details>
+    </div>
+
+    <div class="repeat"><button class="cta" onclick="toForm()">위로 올라가 할인쿠폰 받기</button></div>
+    
+  </div>
+
+  <footer><div class="wrap"><div class="footwrap">
+    <sup>*</sup> 인상 점수는 자가 응답 기반의 참고 지표이며, 개인의 실제 평가나 성과를 보장하거나 예측하지 않습니다.
+  </div></div></footer>
+</div>
+
+<script>
+/* ---- A/B 후크: 소득·능력 vs 연애 (진단명 '인상 격차'는 고정) ---- */
+const V={
+  career:{k:"돈 써도 주변 반응 그대로인 남자만 테스트해보세요",
+    h:'실력과 <span class="hl">첫인상</span> 사이,<br>당신의 <span class="hl">격차</span>는 몇 점입니까?',
+    s:"같은 실력에도 첫인상에 따라 기회와 소득이 갈립니다. 3분 만에 내 인상 격차를 확인하세요.",
+    cta:"내 인상 격차 확인하기"},
+  dating:{k:"인상 격차 진단 · 3분 무료",
+    h:'스펙과 <span class="hl">첫인상</span> 사이,<br>당신의 <span class="hl">격차</span>는 몇 점입니까?',
+    s:"이성은 첫 3초에 스펙이 아니라 첫인상을 봅니다. 같은 조건에도 소개 결과가 갈리는 이유, 3분 만에 확인하세요.",
+    cta:"내 인상 격차 확인하기"}
+};
+/* 이 페이지는 연애·소개형 전용. 히어로 고정. */
+let variant='career';
+function paintHero(){const x=V[variant];
+  document.getElementById('h-kicker').textContent=x.k;
+  document.getElementById('h-head').innerHTML=x.h;
+  document.getElementById('h-sub').textContent=x.s;
+  document.getElementById('h-cta').textContent=x.cta;}
+
+/* ---- 문항 ---- */
+const QUESTIONS=[
+  {axis:'intent',q:"먼저 — 어떤 자리에서 첫인상 덕을 제일 보고 싶으세요?",o:[{t:"일 — 미팅·협상·승진에서 더 인정받고 싶다",v:'career'},{t:"관계 — 소개·데이트에서 제대로 통하고 싶다",v:'rel'},{t:"둘 다 — 전반적인 인상을 끌어올리고 싶다",v:'both'}]},
+  {axis:'status',q:"지금 하고 계신 일에 가장 가까운 건?",o:[{t:"의사·변호사·회계사 등 전문직",p:10},{t:"기업 대표 / 사업체 운영",p:9},{t:"대기업 임원·고위 직급",p:9},{t:"대기업·전문 조직 재직",p:7},{t:"그 외 · 준비 중",p:5}]},
+  {axis:'status',key:'income',q:"연 소득은 어느 구간에 가까우세요?",help:"익명 진단이라 저장되지 않습니다. 편하게 골라주세요.",o:[{t:"3억 원 이상",p:10,mid:400000000},{t:"1.5억 ~ 3억 원",p:9,mid:225000000},{t:"1억 ~ 1.5억 원",p:7,mid:125000000},{t:"7천만 ~ 1억 원",p:5,mid:85000000},{t:"7천만 원 미만",p:3,mid:55000000}]},
+  {axis:'status',q:"학력이나 커리어, 객관적으로 보면 어느 정도세요?",help:"정답은 없어요. 솔직할수록 결과가 정확해집니다.",o:[{t:"확실히 내세울 만하다 — 학벌·경력 중 강한 카드가 있다",p:10},{t:"평균보다는 위다 — 어디서도 밀리지 않는다",p:7},{t:"평범한 편이다 — 특별히 앞서진 않는다",p:4}]},
+  {axis:'image',q:"옷이나 스타일, 평소에 얼마나 챙기세요?",o:[{t:"전문가 도움을 받거나 체계적으로 관리한다",p:10},{t:"나름 신경 써서 챙기는 편",p:7},{t:"기본은 하는데, 이게 맞나 싶다",p:4},{t:"솔직히 거기까지 신경 쓸 여유가 없었다",p:1}]},
+  {axis:'image',q:"헤어·피부·체형 관리는 어떻게 하고 계세요?",o:[{t:"내게 뭐가 필요한지 알고, 꾸준히 관리한다",p:10},{t:"헤어샵·피부과를 꾸준히 다니며 챙긴다",p:8},{t:"필요하다 싶을 때, 필요한 시술을 받는다",p:6},{t:"생각날 때 가끔 직접 관리한다",p:4},{t:"거의 손을 못 대고 있다",p:2}]},
+  {axis:'image',q:"지금 나를 제대로 보여줄 최근 사진, 있으세요?",o:[{t:"전문 촬영한 사진이 있다",p:10},{t:"쓸 만한 게 몇 장 있다",p:6},{t:"셀카나 일상 사진뿐이다",p:3},{t:"쓸 만한 게 거의 없다",p:1}]},
+  {axis:'image',q:"중요한 자리(미팅·소개팅)에서 첫인상, 스스로 어떠세요?",o:[{t:"자신 있다",p:10},{t:"보통이다",p:6},{t:"조금 어색할 때가 있다",p:3},{t:"솔직히 부담스럽다",p:1}]},
+  {axis:'image',q:'"능력·지위에 비해 스타일이 좀 아쉽다" — 이런 말, 들어본 적 있으세요?',o:[{t:"오히려 스타일 칭찬을 듣는다",p:10},{t:"들어본 적 없다",p:8},{t:"가끔 듣는다",p:4},{t:"종종 듣는다",p:1}]}
+];
+let idx=0, incomeMid=125000000;
+const answers=new Array(QUESTIONS.length).fill(null);
+function start(){document.getElementById('landing').classList.add('hidden');document.getElementById('quiz').classList.remove('hidden');idx=0;render();window.scrollTo({top:0,behavior:'auto'});try{if(window.nav)window.nav('quiz',true);if(window.saveState)window.saveState();}catch(e){}}
+function render(){const Q=QUESTIONS[idx];
+  document.getElementById('pbar').style.width=((idx+1)/QUESTIONS.length*100)+'%';
+  document.getElementById('pstep').textContent=(idx+1)+' / '+QUESTIONS.length;
+  document.getElementById('backBtn').classList.toggle('hidden',idx===0);
+  const b=document.getElementById('qbody');
+  b.innerHTML='<div class="qnum">Q'+(idx+1)+'</div><div class="q">'+Q.q+'</div>'+(Q.help?'<div class="qhelp">'+Q.help+'</div>':'')+'<div class="opts">'+Q.o.map((op,i)=>'<button class="opt'+(answers[idx]===i?' sel':'')+'" onclick="choose('+i+')"><span class="dot"></span><span>'+op.t+'</span></button>').join('')+'</div>';
+  void b.offsetWidth;b.classList.add('fadein');}
+function choose(i){if(window.__cl)return;window.__cl=true;answers[idx]=i;render();try{if(window.saveState)window.saveState();}catch(e){}setTimeout(()=>{window.__cl=false;if(idx<QUESTIONS.length-1){idx++;render();try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}}else finish();},230);}
+function back(){if(idx>0){idx--;render();}}
+function scores(){let s={status:0,image:0},m={status:0,image:0};
+  QUESTIONS.forEach((Q,qi)=>{if(Q.axis==='intent')return;const best=Math.max(...Q.o.map(o=>o.p));m[Q.axis]+=best;const a=answers[qi];if(a!=null){s[Q.axis]+=Q.o[a].p;if(Q.key==='income')incomeMid=Q.o[a].mid;}});
+  return{st:Math.round(s.status/m.status*100),im:Math.round(s.image/m.image*100)};}
+function intentVal(){const a=answers[0];return a!=null?QUESTIONS[0].o[a].v:'both';}
+function persona(st,im){const hiS=st>=70,hiI=im>=65;
+  if(hiS&&!hiI)return{name:"숨은 원석형",v:"실력·지위는 이미 최상위권. 그 값을 첫인상에서 다 받아낼 표현만 아직 비어 있습니다.",p:"원데이플랜의 착장 디렉팅이 가장 큰 레버입니다."};
+  if(hiS&&hiI)return{name:"완성형",v:"실력과 인상 모두 상위권. 이제 그 인상을 '제대로 남길' 차례입니다.",p:"원데이플랜의 촬영·미세 조정으로 마무리하시길 추천드립니다."};
+  if(!hiS&&!hiI)return{name:"재정비형",v:"기반을 더 살리고 표현 전략을 전면 재정비하면 체감 인상이 크게 달라집니다.",p:"원데이플랜에서 디렉팅과 촬영을 함께 잡는 것을 추천드립니다."};
+  return{name:"성장형",v:"기반은 탄탄합니다. 결정적 몇 가지만 잡으면 한 단계 도약합니다.",p:"원데이플랜의 핵심 포인트 집중 디렉팅을 추천드립니다."};}
+function fmtWon(w){w=Math.round(w/1e6)*1e6;const man=Math.round(w/1e4);
+  if(man>=10000){const e=Math.floor(man/10000),r=man%10000;return '약 '+e+'억'+(r?' '+r.toLocaleString()+'만':'')+' 원';}
+  return '약 '+man.toLocaleString()+'만 원';}
+function finish(){
+  document.getElementById('pbar').style.width='100%';
+  const {st,im}=scores(),intent=intentVal(),p=persona(st,im);
+  const rank=Math.max(1,Math.round((100-st)*0.8)+1);
+  document.getElementById('quiz').classList.add('hidden');
+  const R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
+  document.getElementById('typeName').textContent='「'+p.name+'」';
+  document.getElementById('verdict').textContent=p.v;
+  document.getElementById('statusVal').textContent='상위 '+rank+'%';
+  document.getElementById('imageVal').textContent=im+' / 100';
+  document.getElementById('laneCareer').classList.toggle('hot',intent==='career'||intent==='both');
+  document.getElementById('laneRel').classList.toggle('hot',intent==='rel'||intent==='both');
+  setTimeout(()=>{document.getElementById('iciNum').textContent=im;
+    document.getElementById('statusFill').style.width=st+'%';
+    document.getElementById('imageFill').style.width=im+'%';},120);
+  try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
+  window.scrollTo({top:0,behavior:'auto'});
+}
+function toForm(){document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
+function issueCoupon(){
+  const btn=document.getElementById('submitBtn');
+  const ph=document.getElementById('fPhone'), pe=document.getElementById('phoneErr'), ae=document.getElementById('agreeErr');
+  ph.classList.remove('err'); if(pe)pe.style.display='none'; if(ae)ae.style.display='none';
+  if(ph.value.replace(/\D/g,'').length<9){ph.classList.add('err'); if(pe)pe.style.display='block'; ph.focus(); return;}
+  const ag=document.getElementById('fAgree'), aw=document.getElementById('agreeWrap'); aw.classList.remove('err');
+  if(!ag.checked){aw.classList.add('err'); if(ae)ae.style.display='block'; return;}
+  if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
+  const code='REALME-'+Math.floor(1000+Math.random()*9000);
+  document.getElementById('couponCode').textContent=code;
+  const cl=document.getElementById('checkoutLink'); if(cl)cl.href='https://impact-me.real-me.co.kr/secret-checkout?coupon='+encodeURIComponent(code);
+  document.getElementById('lockBox').classList.add('hidden');
+  const po=document.getElementById('preoffer'); if(po)po.classList.add('hidden');
+  document.getElementById('persuade').classList.add('hidden');
+  const bx=document.querySelector('.bridge'); if(bx)bx.classList.add('hidden');
+  const iv=document.querySelector('.invest'); if(iv)iv.classList.add('hidden');
+  ['.proofshot','.proofcap','.proofstory'].forEach(function(s){var el=document.querySelector(s); if(el)el.classList.add('hidden');});
+  const sc=document.getElementById('stickyCTA'); if(sc)sc.classList.remove('show');
+  const c=document.getElementById('couponBox');c.classList.remove('hidden');c.classList.add('fadein');
+  try{ if(window.nav)window.nav('coupon'); if(window.saveState)window.saveState(); }catch(e){}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function restart(){
+  try{for(var i=0;i<answers.length;i++)answers[i]=null;}catch(e){}
+  idx=0;
+  var byId=function(id){return document.getElementById(id);}, q=function(s){return document.querySelector(s);};
+  byId('result').classList.add('hidden');
+  var cb=byId('couponBox'); if(cb)cb.classList.add('hidden');
+  ['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'].forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
+  var sb=byId('submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+  byId('landing').classList.add('hidden'); byId('quiz').classList.remove('hidden');
+  render();
+  try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}
+  window.scrollTo({top:0,behavior:'auto'});
+}
+function share(btn){
+  var url='https://premium.real-me.co.kr/';
+  var text='나의 인상 격차는? 3분 무료 진단 →';
+  if(navigator.share){ navigator.share({title:'인상 격차 진단', text:text, url:url}).catch(function(){}); return; }
+  function ok(){ if(btn){var o=btn.getAttribute('data-o')||btn.textContent; btn.setAttribute('data-o',o); btn.textContent='진단 링크가 복사되었습니다 ✓'; btn.disabled=true; setTimeout(function(){btn.textContent=o; btn.disabled=false;},2200);} }
+  function legacy(){ try{var ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); }catch(e){ window.prompt('아래 진단 링크를 복사해 공유하세요', url); } }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(ok).catch(legacy); }
+  else legacy();
+}
+paintHero();
+</script>
+
+
+<div id="stickyCTA" class=""><button class="cta block" onclick="toForm()">쇼룸 예약을 위한 할인쿠폰 발급받기</button></div>
+
+
+
+<script>
+(function(){
+  var CK='realme_quiz_v1';
+  var $=function(id){return document.getElementById(id);};
+  function screenNow(){ if(!$('result').classList.contains('hidden'))return 'result'; if(!$('quiz').classList.contains('hidden'))return 'quiz'; return 'landing'; }
+  window.saveState=function(){ try{ sessionStorage.setItem(CK, JSON.stringify({idx:idx, answers:answers, screen:screenNow()})); }catch(e){} };
+  window.nav=function(screen,replace){ try{ history[replace?'replaceState':'pushState']({screen:screen,idx:idx},''); }catch(e){} };
+  function showLanding(){ $('result').classList.add('hidden'); $('quiz').classList.add('hidden'); $('landing').classList.remove('hidden'); }
+  function showQuiz(i){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden'); idx=Math.max(0,Math.min(QUESTIONS.length-1,i||0)); render(); }
+  window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} });
+  try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
+  var sc=$('stickyCTA');
+  function updSticky(){ if(!sc)return; var res=$('result'), cb=$('couponBox'), lb=$('lockBox');
+    if(!res||res.classList.contains('hidden') || (cb&&!cb.classList.contains('hidden'))){ sc.classList.remove('show'); return; }
+    var vis=false; if(lb){ var r=lb.getBoundingClientRect(); vis=(r.top<window.innerHeight-40 && r.bottom>60); }
+    if(window.scrollY>300 && !vis){ sc.classList.add('show'); } else { sc.classList.remove('show'); }
+  }
+  window.addEventListener('scroll',updSticky,{passive:true}); window.addEventListener('resize',updSticky); setInterval(updSticky,800); updSticky();
+})();
+</script>
+
+<div class="editbar" id="editbar">
+  <span class="st" id="editSt">편집 중 · 텍스트 클릭 / 사진 클릭·드래그</span>
+  <button id="btnEdit" class="pri" onclick="toggleEdit()">✔ 편집 종료</button>
+  <button class="ed pri" onclick="exportHTML()">HTML로 저장</button>
+</div>
+<script id="editjs">
+(function(){
+ var editing=false;
+ var bar=document.getElementById('editbar'); if(!bar) return;
+ try{ if(/[?&]edit=1|#edit/.test(location.href)) bar.style.display='flex'; }catch(e){}
+ document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); bar.style.display=(bar.style.display==='flex')?'none':'flex'; } });
+ var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#submitBtn,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.stepc b,.stepc p,.stack li .t,.stack li .v,.consent>span,.micro";
+ function setEd(on){document.querySelectorAll(SEL).forEach(function(el){el.contentEditable=on?'true':'false';});}
+ function showEd(on){bar.querySelectorAll('.ed').forEach(function(b){b.classList.toggle('hidden',!on);});}
+ function pick(cb){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){if(i.files[0])cb(i.files[0]);};i.click();}
+ function setImg(c,file){var r=new FileReader();r.onload=function(){var img=c.querySelector('img');if(!img){img=document.createElement('img');img.alt='';c.appendChild(img);}img.src=r.result;var ph=c.querySelector('.ph');if(ph)ph.style.display='none';};r.readAsDataURL(file);}
+ function setBg(el,file){var r=new FileReader();r.onload=function(){el.style.backgroundImage='url('+r.result+')';var ln=el.closest('.lane');if(ln)ln.classList.add('hasbg');};r.readAsDataURL(file);}
+ function wire(){
+   document.querySelectorAll('#result .baFeature figure, #result .tavatar, #result .proofshot').forEach(function(el){
+     if(el._w)return; el._w=1;
+     el.addEventListener('click',function(e){if(!editing)return;e.preventDefault();pick(function(f){setImg(el,f);});});
+     el.addEventListener('dragover',function(e){if(editing){e.preventDefault();el.classList.add('drag');}});
+     el.addEventListener('dragleave',function(){el.classList.remove('drag');});
+     el.addEventListener('drop',function(e){if(!editing)return;e.preventDefault();el.classList.remove('drag');if(e.dataTransfer.files[0])setImg(el,e.dataTransfer.files[0]);});
+   });
+   
+ }
+ window.toggleEdit=function(){
+   editing=!editing; document.body.classList.toggle('editing',editing);
+   if(editing){document.getElementById('landing').classList.add('hidden');document.getElementById('quiz').classList.add('hidden');document.getElementById('result').classList.remove('hidden');}
+   setEd(editing); showEd(editing); wire();
+   document.getElementById('btnEdit').textContent=editing?'✔ 편집 종료':'✎ 편집 시작';
+   document.getElementById('editSt').textContent=editing?'편집 중 · 텍스트 클릭 / 사진 클릭·드래그':'보기 모드';
+   document.querySelectorAll('.ed-only').forEach(function(x){x.style.display=editing?'inline-block':'none';});
+   if(editing)window.scrollTo({top:0,behavior:'auto'});
+ };
+ window.exportHTML=function(){
+   var c=document.documentElement.cloneNode(true);
+   c.querySelectorAll('[contenteditable]').forEach(function(e){e.removeAttribute('contenteditable');});
+   c.querySelectorAll('.ed-only').forEach(function(e){e.parentNode&&e.parentNode.removeChild(e);});
+   var bd=c.querySelector('body'); if(bd)bd.classList.remove('editing');
+   var eb=c.querySelector('#editbar'); if(eb)eb.removeAttribute('style');
+   var q=function(s){return c.querySelector(s);};
+   if(q('#landing'))q('#landing').classList.remove('hidden');
+   ['#quiz','#result','#couponBox'].forEach(function(s){var e=q(s);if(e)e.classList.add('hidden');});
+   ['#preoffer','#lockBox','.bridge','.invest','.proofshot','.proofcap','.proofstory'].forEach(function(s){var e=q(s);if(e)e.classList.remove('hidden');});
+   var sb=q('#submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+   var sc=q('#stickyCTA'); if(sc)sc.classList.remove('show');
+   var html='<!DOCTYPE html>\n'+c.outerHTML;
+   var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download='리얼미_랜딩_소득형.html'; document.body.appendChild(a); a.click(); a.remove();
+ };
+})();
+</script>
+</body></html>
