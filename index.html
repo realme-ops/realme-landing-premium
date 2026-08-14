@@ -286,7 +286,7 @@ function render(){const Q=QUESTIONS[idx];
   const b=document.getElementById('qbody');
   b.innerHTML='<div class="qnum">Q'+(idx+1)+'</div><div class="q">'+Q.q+'</div>'+(Q.help?'<div class="qhelp">'+Q.help+'</div>':'')+'<div class="opts">'+Q.o.map((op,i)=>'<button class="opt'+(answers[idx]===i?' sel':'')+'" onclick="choose('+i+')"><span class="dot"></span><span>'+op.t+'</span></button>').join('')+'</div>';
   void b.offsetWidth;b.classList.add('fadein');}
-function choose(i){if(window.__cl)return;window.__cl=true;answers[idx]=i;trk('quiz_answer',{step:idx+1,question:'Q'+(idx+1)});render();try{if(window.saveState)window.saveState();}catch(e){}setTimeout(()=>{window.__cl=false;if(idx<QUESTIONS.length-1){idx++;render();try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}}else finish();},230);}
+function choose(i){if(window.__cl)return;window.__cl=true;answers[idx]=i;trk('quiz_answer',{question:'Q'+(idx+1)});render();try{if(window.saveState)window.saveState();}catch(e){}setTimeout(()=>{window.__cl=false;if(idx<QUESTIONS.length-1){idx++;render();try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}}else finish();},230);}
 function back(){if(idx>0){idx--;render();}}
 function scores(){let s={status:0,image:0},m={status:0,image:0};
   QUESTIONS.forEach((Q,qi)=>{if(Q.axis==='intent')return;const best=Math.max(...Q.o.map(o=>o.p));m[Q.axis]+=best;const a=answers[qi];if(a!=null){s[Q.axis]+=Q.o[a].p;if(Q.key==='income')incomeMid=Q.o[a].mid;}});
