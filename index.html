@@ -22,7 +22,7 @@
     GA4_ID:        "G-TYWS49LKCM",
     META_PIXEL_ID: "468864818533646",
     // 프리미엄 탭 리드 적재용 Apps Script 웹앱 (/exec URL). 비어 있으면 전송하지 않음.
-    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxcho6v-MLb3C7qLtCIUMOJQd4kSiKcFaw30ta-qmLi6ZOOyZVW84fSpvuEV7-SFsnp/exec"
+    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxlTQ_tuq7p7TZeYB_kNllKr9qjjEEr4nGr4jMvvaIfsjOkgEyTFAFbtdPq7KhTqQOL/exec"
   };
 </script>
 <!-- Google Analytics 4 -->
@@ -403,7 +403,11 @@ function share(btn){
   var url='https://premium.real-me.co.kr/?utm_source=share&utm_medium=referral&utm_campaign=premium_gap';
   var title='인상 격차 진단 · 3분 무료';
   var text='같은 실력인데 첫인상에서 손해 보고 있진 않은지, 3분이면 나옵니다. 내 인상 점수 확인 →';
-  function done(method){ trk('share_success',{method:method}); }
+  function done(method){
+    trk('share_success',{method:method});
+    var q=window.inboundParams?window.inboundParams():{};
+    sendLead({type:'share',method:method,utm_source:q.utm_source||''});   // 구글시트 프리미엄_공유 탭
+  }
   function ok(){ if(btn){var o=btn.getAttribute('data-o')||btn.textContent; btn.setAttribute('data-o',o); btn.textContent='진단 링크가 복사되었습니다 ✓'; btn.disabled=true; setTimeout(function(){btn.textContent=o; btn.disabled=false;},2200);} }
   function legacy(){ try{var ta=document.createElement('textarea'); ta.value=text+'\n'+url; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); done('clipboard_legacy'); }catch(e){ window.prompt('아래 진단 링크를 복사해 공유하세요', url); done('prompt'); } }
 
