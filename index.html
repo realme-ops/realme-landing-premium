@@ -20,7 +20,9 @@
 <script>
   window.REALME_CONFIG = {
     GA4_ID:        "G-TYWS49LKCM",
-    META_PIXEL_ID: "468864818533646"
+    META_PIXEL_ID: "468864818533646",
+    // 프리미엄 탭 리드 적재용 Apps Script 웹앱 (/exec URL). 비어 있으면 전송하지 않음.
+    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxcho6v-MLb3C7qLtCIUMOJQd4kSiKcFaw30ta-qmLi6ZOOyZVW84fSpvuEV7-SFsnp/exec"
   };
 </script>
 <!-- Google Analytics 4 -->
@@ -53,6 +55,17 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
   // 화면 전환을 GA4 가상 페이지뷰로 기록 (단일 페이지라 단계별 분리가 안 되므로)
   window.vpv=function(path,title){
     try{if(window.gtag)gtag('event','page_view',{page_location:location.origin+path,page_path:path,page_title:title||document.title,landing:'premium',page_group:GROUP});}catch(e){}
+  };
+  // 리드 적재 (구글시트 프리미엄 탭). sendBeacon이라 페이지를 바로 떠나도 전송됨.
+  window.sendLead=function(obj){
+    var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT;
+    if(!url)return;
+    try{
+      var payload=JSON.stringify(obj);
+      // text/plain = CORS 프리플라이트 회피 (Apps Script는 프리플라이트에 응답하지 않음)
+      if(navigator.sendBeacon){ navigator.sendBeacon(url,new Blob([payload],{type:'text/plain;charset=utf-8'})); }
+      else{ fetch(url,{method:'POST',body:payload,keepalive:true,mode:'no-cors'}).catch(function(){}); }
+    }catch(e){}
   };
   // 유입 UTM 보존 → 아웃바운드 링크에 그대로 넘김
   window.inboundParams=function(){
@@ -181,7 +194,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     </div>
 
     <div id="couponBox" class="hidden">
-      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>입력하신 번호로 할인쿠폰을 문자로 보냈습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
+      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>할인쿠폰이 발급되었습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
       <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/" onclick="trkCTA()" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
       <button class="cta block secondary" style="margin-top:10px" onclick="share(this)">주변 전문직 지인에게 진단 추천하기</button>
       
@@ -319,6 +332,26 @@ function issueCoupon(){
   const code='REALME-'+Math.floor(1000+Math.random()*9000);
   document.getElementById('couponCode').textContent=code;
   const cl=document.getElementById('checkoutLink'); if(cl)cl.href=discountURL(code);
+
+  // 구글시트 프리미엄 탭 적재 (전화번호는 여기서만 남고 GA4로는 절대 보내지 않음)
+  try{
+    const q=window.inboundParams?window.inboundParams():{};
+    const s=scores();
+    sendLead({
+      phone:        ph.value.replace(/\D/g,''),
+      score:        s.im,
+      status_score: s.st,
+      persona:      (persona(s.st,s.im)||{}).name||'',
+      intent:       intentVal(),
+      utm_source:   q.utm_source||'', utm_medium:  q.utm_medium||'',
+      utm_campaign: q.utm_campaign||'', utm_content: q.utm_content||'',
+      fbclid:       q.fbclid||'',
+      referrer:     document.referrer||'',
+      landing:      'premium',
+      consent:      true
+    });
+  }catch(e){}
+
   try{ if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code}); if(window.fbq)fbq('track','CompleteRegistration',{content_name:'premium_coupon'}); }catch(e){}
   vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
   document.getElementById('lockBox').classList.add('hidden');
