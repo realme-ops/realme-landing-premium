@@ -170,13 +170,13 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       <div class="meter"><div class="top"><span class="lbl">현재 인상 점수</span><span class="val" id="imageVal" style="color:var(--gold-soft)">22 / 100</span></div><div class="track"><div class="fill image" id="imageFill" style="width: 22%;"></div></div></div>
     </div>
     <!-- 위협형 금액 프레임 블록 제거 (offers 스킬 가이드) -->
-    <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="framebridge">
       <div class="k">여기서부터가 본론입니다</div>
       <p>실력을 알아보는 자리는 회의실만이 아닙니다. 협상 테이블에서 통하던 것이
       처음 만난 사람 앞에서는 통하지 않는 순간이 있습니다. 그 격차가 가장 정직하게
       드러나는 곳이 사실은 일이 아니라 관계입니다.</p>
     </div>
+    <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="lanes">
       <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
       <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-02.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
@@ -222,7 +222,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       <div class="body">
         <ul class="stack">
           <li><span class="t">인상 격차 정밀 진단 (파인딩플랜 포함)</span><span class="v">₩150,000 상당</span></li>
-          <li class="bonus"><span class="t"><b>연애·이성 관계 전략 상담</b> — 소개 자리에서의 인상과 태도 방향을 함께 정리합니다</span><span class="v">₩120,000 → 무료</span></li>
+          <li class="bonus"><span class="t"><span><b>연애·이성 관계 전략 상담</b> — 소개 자리에서의 인상과 태도 방향을 함께 정리합니다</span></span><span class="v">₩120,000 → 무료</span></li>
           <li><span class="t">1:1 착장 디렉팅 (내게 맞는 색·핏, 혼자서도 재현)</span><span class="v">₩300,000 상당</span></li>
           <li><span class="t">자연스러운 최신 사진 3~5컷 (SNS·프로필에 바로 사용)</span><span class="v">₩250,000 상당</span></li>
         </ul>
@@ -241,7 +241,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
         <div class="micro" style="text-align:center">입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
         <div class="risk"><span>✅ 진단자 <b>전용가</b></span><span>✅ 방문 후 불만족 시 <b>환불</b></span><span>✅ <b>1:1 프라이빗</b></span></div>
         <div class="proof">👤 진단을 마치신 분께만 쿠폰이 발급됩니다</div>
-        <div class="downsell">외모에 돈 쓰고도 주변 반응 없었던 분만 예약하세요.</div>
+        <div class="downsell">실력은 이미 증명하셨습니다. 남은 건 첫인상 하나입니다.</div>
       </div>
     </div>
 
@@ -593,7 +593,7 @@ paintHero();
    var q=function(s){return c.querySelector(s);};
    if(q('#landing'))q('#landing').classList.remove('hidden');
    ['#quiz','#result','#couponBox'].forEach(function(s){var e=q(s);if(e)e.classList.add('hidden');});
-   ['#preoffer','#lockBox','.bridge','.invest','.proofshot','.proofcap','.proofstory'].forEach(function(s){var e=q(s);if(e)e.classList.remove('hidden');});
+   window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s);if(e)e.classList.remove('hidden');});
    var sb=q('#submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
    var sc=q('#stickyCTA'); if(sc)sc.classList.remove('show');
    var html='<!DOCTYPE html>\n'+c.outerHTML;
