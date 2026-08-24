@@ -57,16 +57,62 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     try{if(window.gtag)gtag('event','page_view',{page_location:location.origin+path,page_path:path,page_title:title||document.title,landing:'premium',page_group:GROUP});}catch(e){}
   };
   // 리드 적재 (구글시트 프리미엄 탭). sendBeacon이라 페이지를 바로 떠나도 전송됨.
+  var LQ='realme_leadq_v1', LQ_TTL=864e5, LQ_MAX=3;
+  // 진단 이벤트는 GA4 전용. 픽셀로 보내면 최적화 신호가 오염된다.
+  function diag(name,extra){
+    var q={landing:'premium',page_group:GROUP};for(var k in extra)q[k]=extra[k];
+    try{if(window.gtag)gtag('event',name,q);}catch(e){}
+  }
+  // text/plain = CORS 프리플라이트 회피 (Apps Script는 프리플라이트에 응답하지 않음)
+  function beaconSend(url,payload){
+    try{ return !!(navigator.sendBeacon && navigator.sendBeacon(url,new Blob([payload],{type:'text/plain;charset=utf-8'}))); }
+    catch(e){ return false; }
+  }
+  function fetchSend(url,payload){
+    try{
+      return fetch(url,{method:'POST',body:payload,keepalive:true,mode:'no-cors'})
+        .then(function(){ diag('lead_send_ok',{path:'fetch'}); return true; })
+        .catch(function(){ diag('lead_send_fail',{path:'fetch'}); return false; });
+    }catch(e){ diag('lead_send_fail',{path:'fetch',reason:'throw'}); return Promise.resolve(false); }
+  }
+  // 3차 경로: 두 전송이 모두 실패하면 이 기기에만 보관하고 다음 방문에 재전송.
+  // 전화번호가 포함되므로 24시간 TTL, 최대 3건, 전송 성공 시 즉시 삭제.
+  function enqueue(payload){
+    try{
+      var q=JSON.parse(localStorage.getItem(LQ)||'[]');
+      q.push({t:Date.now(),p:payload});
+      while(q.length>LQ_MAX)q.shift();
+      localStorage.setItem(LQ,JSON.stringify(q));
+      diag('lead_queued',{depth:q.length});
+    }catch(e){ diag('lead_send_fail',{path:'queue'}); }
+  }
   window.sendLead=function(obj){
     var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT;
     if(!url)return;
-    try{
-      var payload=JSON.stringify(obj);
-      // text/plain = CORS 프리플라이트 회피 (Apps Script는 프리플라이트에 응답하지 않음)
-      if(navigator.sendBeacon){ navigator.sendBeacon(url,new Blob([payload],{type:'text/plain;charset=utf-8'})); }
-      else{ fetch(url,{method:'POST',body:payload,keepalive:true,mode:'no-cors'}).catch(function(){}); }
-    }catch(e){}
+    var payload;
+    try{ payload=JSON.stringify(obj); }catch(e){ diag('lead_send_fail',{path:'stringify'}); return; }
+    if(beaconSend(url,payload)){ diag('lead_send_ok',{path:'beacon'}); return; }   // 1차
+    diag('lead_send_fail',{path:'beacon'});
+    fetchSend(url,payload).then(function(ok){ if(!ok)enqueue(payload); });         // 2차 -> 실패 시 3차
   };
+  window.flushLeadQueue=function(){
+    var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT; if(!url)return;
+    var q; try{ q=JSON.parse(localStorage.getItem(LQ)||'[]'); }catch(e){ return; }
+    if(!q||!q.length)return;
+    var now=Date.now(), keep=[], sent=0, dropped=0;
+    for(var i=0;i<q.length;i++){
+      var it=q[i];
+      if(!it||!it.p){ continue; }
+      if(now-it.t>LQ_TTL){ dropped++; continue; }
+      if(beaconSend(url,it.p)){ sent++; continue; }
+      keep.push(it);
+    }
+    try{ localStorage.setItem(LQ,JSON.stringify(keep)); }catch(e){}
+    if(sent)diag('lead_retry_ok',{count:sent});
+    if(dropped)diag('lead_retry_expired',{count:dropped});
+    if(keep.length)diag('lead_retry_pending',{count:keep.length});
+  };
+  try{ window.flushLeadQueue(); }catch(e){}
   // 유입 UTM 보존 → 아웃바운드 링크에 그대로 넘김
   window.inboundParams=function(){
     try{
@@ -93,7 +139,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
   <p class="sub" id="h-sub">당신의 연봉이 실력에 못 미친 이유. 연봉 2억 전문직은 실력이 아닌 첫인상이 다릅니다.</p>
   <div class="cta-wrap">
     <button class="cta" id="h-cta" onclick="start()">내 인상 격차 확인하기</button>
-    <div class="micro">결과 즉시 확인 · 익명 진단 · 가입 불필요</div>
+    <div class="micro">결과 즉시 확인 · 가입 불필요 · 연락처는 마지막에만</div>
   </div>
   <div class="heromock">
     <div class="cap">인상 격차 진단 결과 예시</div>
@@ -186,7 +232,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
         <label class="consent" id="agreeWrap"><input type="checkbox" id="fAgree"><span><span class="req">[필수]</span> 개인정보 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=policy" target="_blank" rel="noopener" class="clink">약관 보기</a> <span style="opacity:.75">(쇼룸 예약 안내 목적 · 언제든 삭제 가능)</span></span></label>
         <div class="ferr" id="agreeErr">개인정보 수집·이용에 동의해 주세요.</div>
         <button class="cta block" id="submitBtn" onclick="issueCoupon()">쇼룸 예약을 위한 할인쿠폰 발급받기</button>
-        <div class="micro" style="text-align:center">진단 결과는 익명으로 처리됩니다 · 입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
+        <div class="micro" style="text-align:center">입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
         <div class="risk"><span>✅ 진단자 <b>전용가</b></span><span>✅ 방문 후 불만족 시 <b>환불</b></span><span>✅ <b>1:1 프라이빗</b></span></div>
         <div class="proof">👤 이미 <b>1,200명+</b> 전문직이 리얼미를 다녀갔습니다</div>
         <div class="downsell">외모에 돈 쓰고도 주변 반응 없었던 분만 예약하세요.</div>
@@ -267,9 +313,9 @@ function paintHero(){const x=V[variant];
 /* ---- 문항 ---- */
 const QUESTIONS=[
   {axis:'intent',q:"먼저 — 어떤 자리에서 첫인상 덕을 제일 보고 싶으세요?",o:[{t:"일 — 미팅·협상·승진에서 더 인정받고 싶다",v:'career'},{t:"관계 — 소개·데이트에서 제대로 통하고 싶다",v:'rel'},{t:"둘 다 — 전반적인 인상을 끌어올리고 싶다",v:'both'}]},
-  {axis:'status',q:"지금 하고 계신 일에 가장 가까운 건?",o:[{t:"의사·변호사·회계사 등 전문직",p:10},{t:"기업 대표 / 사업체 운영",p:9},{t:"대기업 임원·고위 직급",p:9},{t:"대기업·전문 조직 재직",p:7},{t:"그 외 · 준비 중",p:5}]},
-  {axis:'status',key:'income',q:"연 소득은 어느 구간에 가까우세요?",help:"익명 진단이라 저장되지 않습니다. 편하게 골라주세요.",o:[{t:"3억 원 이상",p:10,mid:400000000},{t:"1.5억 ~ 3억 원",p:9,mid:225000000},{t:"1억 ~ 1.5억 원",p:7,mid:125000000},{t:"7천만 ~ 1억 원",p:5,mid:85000000},{t:"7천만 원 미만",p:3,mid:55000000}]},
-  {axis:'status',q:"학력이나 커리어, 객관적으로 보면 어느 정도세요?",help:"정답은 없어요. 솔직할수록 결과가 정확해집니다.",o:[{t:"확실히 내세울 만하다 — 학벌·경력 중 강한 카드가 있다",p:10},{t:"평균보다는 위다 — 어디서도 밀리지 않는다",p:7},{t:"평범한 편이다 — 특별히 앞서진 않는다",p:4}]},
+  {axis:'status',key:'job',q:"지금 하고 계신 일에 가장 가까운 건?",o:[{t:"의사·변호사·회계사 등 전문직",p:10},{t:"기업 대표 / 사업체 운영",p:9},{t:"대기업 임원·고위 직급",p:9},{t:"대기업·전문 조직 재직",p:7},{t:"그 외 · 준비 중",p:5}]},
+  {axis:'status',key:'income',q:"연 소득은 어느 구간에 가까우세요?",help:"구간만 고르시면 됩니다. 진단 결과 계산에 사용됩니다.",o:[{t:"3억 원 이상",p:10,mid:400000000},{t:"1.5억 ~ 3억 원",p:9,mid:225000000},{t:"1억 ~ 1.5억 원",p:7,mid:125000000},{t:"7천만 ~ 1억 원",p:5,mid:85000000},{t:"7천만 원 미만",p:3,mid:55000000}]},
+  {axis:'status',key:'edu',q:"학력이나 커리어, 객관적으로 보면 어느 정도세요?",help:"정답은 없어요. 솔직할수록 결과가 정확해집니다.",o:[{t:"확실히 내세울 만하다 — 학벌·경력 중 강한 카드가 있다",p:10},{t:"평균보다는 위다 — 어디서도 밀리지 않는다",p:7},{t:"평범한 편이다 — 특별히 앞서진 않는다",p:4}]},
   {axis:'image',q:"옷이나 스타일, 평소에 얼마나 챙기세요?",o:[{t:"전문가 도움을 받거나 체계적으로 관리한다",p:10},{t:"나름 신경 써서 챙기는 편",p:7},{t:"기본은 하는데, 이게 맞나 싶다",p:4},{t:"솔직히 거기까지 신경 쓸 여유가 없었다",p:1}]},
   {axis:'image',q:"헤어·피부·체형 관리는 어떻게 하고 계세요?",o:[{t:"내게 뭐가 필요한지 알고, 꾸준히 관리한다",p:10},{t:"헤어샵·피부과를 꾸준히 다니며 챙긴다",p:8},{t:"필요하다 싶을 때, 필요한 시술을 받는다",p:6},{t:"생각날 때 가끔 직접 관리한다",p:4},{t:"거의 손을 못 대고 있다",p:2}]},
   {axis:'image',q:"지금 나를 제대로 보여줄 최근 사진, 있으세요?",o:[{t:"전문 촬영한 사진이 있다",p:10},{t:"쓸 만한 게 몇 장 있다",p:6},{t:"셀카나 일상 사진뿐이다",p:3},{t:"쓸 만한 게 거의 없다",p:1}]},
@@ -292,6 +338,23 @@ function scores(){let s={status:0,image:0},m={status:0,image:0};
   QUESTIONS.forEach((Q,qi)=>{if(Q.axis==='intent')return;const best=Math.max(...Q.o.map(o=>o.p));m[Q.axis]+=best;const a=answers[qi];if(a!=null){s[Q.axis]+=Q.o[a].p;if(Q.key==='income')incomeMid=Q.o[a].mid;}});
   return{st:Math.round(s.status/m.status*100),im:Math.round(s.image/m.image*100)};}
 function intentVal(){const a=answers[0];return a!=null?QUESTIONS[0].o[a].v:'both';}
+// 자격 판정용 원값. 합산 status 점수는 소득을 학력으로 상쇄하므로(전문직+저소득+고학력 = 대기업+고소득+평범)
+// 문항 원값을 따로 남긴다. 자격은 직업 AND 소득 두 문항으로만 판정한다.
+function statusRaw(){
+  var r={job_p:'',income_p:'',income_mid:'',edu_p:''};
+  QUESTIONS.forEach(function(Q,qi){
+    if(Q.axis!=='status')return;
+    var a=answers[qi]; if(a==null)return;
+    var o=Q.o[a];
+    if(Q.key==='income'){ r.income_p=o.p; r.income_mid=o.mid; }
+    else if(Q.key==='job'){ r.job_p=o.p; }
+    else if(Q.key==='edu'){ r.edu_p=o.p; }
+  });
+  r.ql = (r.job_p>=9&&r.income_p>=9) ? 'QL-A'
+       : (r.job_p>=7&&r.income_p>=7) ? 'QL-B'
+       : 'NQ';
+  return r;
+}
 function persona(st,im){const hiS=st>=70,hiI=im>=65;
   if(hiS&&!hiI)return{name:"숨은 원석형",v:"실력·지위는 이미 최상위권. 그 값을 첫인상에서 다 받아낼 표현만 아직 비어 있습니다.",p:"원데이플랜의 착장 디렉팅이 가장 큰 레버입니다."};
   if(hiS&&hiI)return{name:"완성형",v:"실력과 인상 모두 상위권. 이제 그 인상을 '제대로 남길' 차례입니다.",p:"원데이플랜의 촬영·미세 조정으로 마무리하시길 추천드립니다."};
@@ -336,11 +399,16 @@ function issueCoupon(){
   // 구글시트 프리미엄 탭 적재 (전화번호는 여기서만 남고 GA4로는 절대 보내지 않음)
   try{
     const q=window.inboundParams?window.inboundParams():{};
-    const s=scores();
+    const s=scores(), r=statusRaw();
     sendLead({
       phone:        ph.value.replace(/\D/g,''),
       score:        s.im,
       status_score: s.st,
+      job_p:        r.job_p,
+      income_p:     r.income_p,
+      income_mid:   r.income_mid,
+      edu_p:        r.edu_p,
+      ql:           r.ql,
       persona:      (persona(s.st,s.im)||{}).name||'',
       intent:       intentVal(),
       utm_source:   q.utm_source||'', utm_medium:  q.utm_medium||'',
