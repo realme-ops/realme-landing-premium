@@ -82,6 +82,11 @@
   .invest .k{color:var(--gold);letter-spacing:.1em;font-size:12px;text-transform:uppercase;text-align:center;margin-bottom:10px}
   .invest p{font-size:14px;color:#d4d9e2;text-align:center}.invest b{color:var(--gold-soft)}
 
+  .empath{margin:2px 0 20px;padding:16px 18px;border-left:4px solid var(--gold);border-radius:0 10px 10px 0;background:rgba(200,163,91,.07)}
+  .empath .k{color:var(--gold);letter-spacing:.12em;font-size:12px;text-transform:uppercase;margin-bottom:9px}
+  .empath p{font-size:14.5px;color:var(--ink);line-height:1.72}
+  .empath p+p{margin-top:10px}
+  .empath b{color:var(--gold-soft);font-weight:800}
   .framebridge{text-align:center;margin:24px 0 20px;padding:20px;border-left:4px solid var(--gold)}
   .framebridge .k{color:var(--gold);letter-spacing:.12em;font-size:12px;text-transform:uppercase;margin-bottom:12px}
   .framebridge p{font-size:14px;color:#d4d9e2;line-height:1.6}
@@ -181,6 +186,7 @@
   .card,.heromock{background:#ffffff !important;box-shadow:0 16px 44px -28px rgba(30,25,10,.22) !important}
   .invest{background:#f7f3ea !important;border-color:var(--line)}
   .invest p{color:#3b3f47 !important}
+  .framebridge p{color:#3b3f47 !important}
   .opt:hover{background:#f1eee4 !important;border-color:var(--gold)}
   .opt.sel{background:#f4ecd7 !important;border-color:var(--gold)}
   .lane{background:#f7f4ed}
