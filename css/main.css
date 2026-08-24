@@ -82,10 +82,6 @@
   .invest .k{color:var(--gold);letter-spacing:.1em;font-size:12px;text-transform:uppercase;text-align:center;margin-bottom:10px}
   .invest p{font-size:14px;color:#d4d9e2;text-align:center}.invest b{color:var(--gold-soft)}
 
-  .empath{margin:2px 0 20px;padding:16px 18px;border-left:4px solid var(--gold);border-radius:0 10px 10px 0;background:rgba(200,163,91,.07)}
-  .empath .eh{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.4;color:var(--ink);margin-bottom:9px;text-wrap:balance}
-  .empath p{font-size:14.5px;color:var(--ink);line-height:1.72}
-  .empath b{color:var(--gold-soft);font-weight:800}
 
   .bridge{text-align:center;margin:30px 0 4px}
   .bridge .k{color:var(--gold);letter-spacing:.12em;font-size:12px;text-transform:uppercase}
@@ -136,8 +132,8 @@
   .baverify{color:var(--muted);font-size:11.5px;margin-top:12px;text-align:center;line-height:1.5}
   .baFeature{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px}
   .baFeature .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .baFeature.solo{margin:20px 0 4px}
-  .baFeature.solo .pair{grid-template-columns:minmax(0,264px);justify-content:center}
+  .baFeature.topproof{margin:2px 0 20px}
+  .baFeature.topproof .eh{text-align:center;font-size:18px;font-weight:800;letter-spacing:-.015em;line-height:1.45;color:var(--ink);margin-bottom:12px;text-wrap:balance}
   .baFeature figure{margin:0;position:relative;border-radius:10px;overflow:hidden;aspect-ratio:3/4;background:#0f1420}
   .baFeature figure img{width:100%;height:100%;object-fit:cover;display:block}
   .baFeature figcaption{position:absolute;top:8px;left:8px;z-index:2;font-size:11px;letter-spacing:.04em;background:rgba(13,16,23,.72);color:var(--gold-soft);padding:3px 9px;border-radius:999px}
