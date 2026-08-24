@@ -384,6 +384,11 @@ function finish(){
   window.scrollTo({top:0,behavior:'auto'});
 }
 function toForm(){trk('sticky_cta_click',{target:'coupon_form'});document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
+// 쿠폰 발급 시 숨기고 재진단 시 되살리는 섹션 목록.
+// issueCoupon() 과 restart() 가 반드시 같은 목록을 봐야 한다.
+// (과거 #persuade 누락으로 재진단 시 사례·FAQ가 사라지는 버그가 있었다 — CLAUDE.md §9)
+// 섹션을 추가·삭제할 때는 이 배열만 고친다.
+window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
 function issueCoupon(){
   const btn=document.getElementById('submitBtn');
   const ph=document.getElementById('fPhone'), pe=document.getElementById('phoneErr'), ae=document.getElementById('agreeErr');
@@ -422,12 +427,7 @@ function issueCoupon(){
 
   try{ if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code}); if(window.fbq)fbq('track','CompleteRegistration',{content_name:'premium_coupon'}); }catch(e){}
   vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
-  document.getElementById('lockBox').classList.add('hidden');
-  const po=document.getElementById('preoffer'); if(po)po.classList.add('hidden');
-  document.getElementById('persuade').classList.add('hidden');
-  const bx=document.querySelector('.bridge'); if(bx)bx.classList.add('hidden');
-  const iv=document.querySelector('.invest'); if(iv)iv.classList.add('hidden');
-  ['.proofshot','.proofcap','.proofstory'].forEach(function(s){var el=document.querySelector(s); if(el)el.classList.add('hidden');});
+  window.REVEAL_ON_RESTART.forEach(function(s){var el=document.querySelector(s); if(el)el.classList.add('hidden');});
   const sc=document.getElementById('stickyCTA'); if(sc)sc.classList.remove('show');
   const c=document.getElementById('couponBox');c.classList.remove('hidden');c.classList.add('fadein');
   try{ if(window.nav)window.nav('coupon'); if(window.saveState)window.saveState(); }catch(e){}
@@ -440,7 +440,7 @@ function restart(){
   var byId=function(id){return document.getElementById(id);}, q=function(s){return document.querySelector(s);};
   byId('result').classList.add('hidden');
   var cb=byId('couponBox'); if(cb)cb.classList.add('hidden');
-  ['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'].forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
+  window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
   var sb=byId('submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
   byId('landing').classList.add('hidden'); byId('quiz').classList.remove('hidden');
   render();
