@@ -440,7 +440,20 @@ function issueCoupon(){
     });
   }catch(e){}
 
-  try{ if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code}); if(window.fbq)fbq('track','CompleteRegistration',{content_name:'premium_coupon'}); }catch(e){}
+  // 자격 신호를 광고 플랫폼에 되돌린다. value 는 소득 구간 중앙값(원)이며 실제 매출이 아니라
+  // "이 리드가 얼마짜리 소득군인가"를 뜻하는 대리지표다. 주 4건 볼륨에서 알고리즘 최적화는
+  // 기대하지 않고, 소재별 자격률 판독과 볼륨 확보 시의 자산 축적이 목적이다.
+  // r 은 위 sendLead 블록의 r 과 별개다 — 그 블록의 try 스코프 밖이라 여기서 다시 계산한다.
+  try{
+    const r=statusRaw();
+    if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code,
+      ql:r.ql,job_p:r.job_p,income_p:r.income_p});
+    if(window.fbq){
+      fbq('track','CompleteRegistration',{content_name:'premium_coupon',
+        value:(r.income_mid||0),currency:'KRW',ql:r.ql});
+      if(r.ql!=='NQ')fbq('trackCustom','QualifiedLead',{ql:r.ql,value:(r.income_mid||0),currency:'KRW'});
+    }
+  }catch(e){}
   vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
   window.REVEAL_ON_RESTART.forEach(function(s){var el=document.querySelector(s); if(el)el.classList.add('hidden');});
   const sc=document.getElementById('stickyCTA'); if(sc)sc.classList.remove('show');
