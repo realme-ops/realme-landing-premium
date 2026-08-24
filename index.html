@@ -484,11 +484,17 @@ function issueCoupon(){
     }
   }catch(e){}
   vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
-  window.REVEAL_ON_RESTART.forEach(function(s){var el=document.querySelector(s); if(el)el.classList.add('hidden');});
-  const sc=document.getElementById('stickyCTA'); if(sc)sc.classList.remove('show');
-  const c=document.getElementById('couponBox');c.classList.remove('hidden');c.classList.add('fadein');
-  try{ if(window.nav)window.nav('coupon'); if(window.saveState)window.saveState(); }catch(e){}
-  window.scrollTo({top:0,behavior:'smooth'});
+  // 쿠폰 발급 완료 화면을 거치지 않고 곧장 예약금 결제로 보낸다.
+  // - 결제 CTA 클릭 이벤트는 사용자가 더 이상 그 버튼을 누르지 않으므로 여기서 대신 쏜다.
+  // - sendLead 1차 경로는 sendBeacon 이라 이탈해도 전송되지만, 비콘이 막힌 브라우저에서는
+  //   fetch 폴백과 gtag/fbq 전송이 아직 진행 중일 수 있어 짧게 유예를 두고 이동한다.
+  // - 결과 화면 섹션을 숨기지 않는다: 결제창에서 뒤로가기로 돌아왔을 때(bfcache 복원 포함)
+  //   빈 페이지가 아니라 정상 결과 화면이 보여야 한다.
+  try{ trkCTA(); }catch(e){}
+  const dest=checkoutURL(code,ph.value.replace(/\D/g,''));
+  if(btn){btn.textContent='예약 페이지로 이동 중…';}
+  try{ if(window.saveState)window.saveState(); }catch(e){}
+  setTimeout(function(){ window.location.href=dest; },700);
 }
 function restart(){
   trk('quiz_restart');
