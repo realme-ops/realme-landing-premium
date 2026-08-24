@@ -33,13 +33,6 @@
   .hero .kicker,.hero h1{text-align:center}
   .hero .sub{color:var(--muted);text-align:center;font-size:16px;margin-top:16px;max-width:560px;margin-left:auto;margin-right:auto}
   .hero .cta-wrap{text-align:center;margin-top:26px}
-  .heromock{margin:28px auto 0;max-width:420px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--card),#131826);padding:18px;box-shadow:0 24px 60px -30px #000}
-  .heromock .cap{color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-align:center}
-  .heromock .num{font-size:46px;font-weight:800;color:var(--gold-soft);text-align:center;line-height:1}
-  .heromock .num small{font-size:16px;color:var(--muted)}
-  .mmeter{margin-top:10px}.mmeter .t{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
-  .mtrack{height:8px;background:var(--line);border-radius:99px;overflow:hidden}.mtrack i{display:block;height:100%;border-radius:99px}
-  .mtrack i.s{background:linear-gradient(90deg,#3f6ea3,var(--good))}.mtrack i.g{background:linear-gradient(90deg,#8a6a2e,var(--gold-soft))}
   .heroproof{text-align:center;color:var(--muted);font-size:12.5px;margin-top:22px}.heroproof b{color:var(--gold-soft)}
 
   .diag{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px}
@@ -133,7 +126,8 @@
   .baFeature{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px}
   .baFeature .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .baFeature.topproof{margin:2px 0 20px}
-  .baFeature.topproof .eh{text-align:center;font-size:18px;font-weight:800;letter-spacing:-.015em;line-height:1.45;color:var(--ink);margin-bottom:12px;text-wrap:balance}
+  .baFeature.herofeature{max-width:420px;margin:28px auto 0}
+  .baFeature .eh{text-align:center;font-size:18px;font-weight:800;letter-spacing:-.015em;line-height:1.45;color:var(--ink);margin-bottom:12px;text-wrap:balance}
   .baFeature figure{margin:0;position:relative;border-radius:10px;overflow:hidden;aspect-ratio:3/4;background:#0f1420}
   .baFeature figure img{width:100%;height:100%;object-fit:cover;display:block}
   .baFeature figcaption{position:absolute;top:8px;left:8px;z-index:2;font-size:11px;letter-spacing:.04em;background:rgba(13,16,23,.72);color:var(--gold-soft);padding:3px 9px;border-radius:999px}
@@ -177,7 +171,7 @@
   }
   body{background:radial-gradient(1200px 720px at 50% -8%,#ffffff 0%,#f4f1ea 60%) fixed !important;color:var(--ink)}
   .topbar{background:rgba(255,255,255,.9) !important;border-bottom:1px solid var(--line)}
-  .card,.heromock{background:#ffffff !important;box-shadow:0 16px 44px -28px rgba(30,25,10,.22) !important}
+  .card{background:#ffffff !important;box-shadow:0 16px 44px -28px rgba(30,25,10,.22) !important}
   .invest{background:#f7f3ea !important;border-color:var(--line)}
   .invest p{color:#3b3f47 !important}
   .opt:hover{background:#f1eee4 !important;border-color:var(--gold)}
@@ -229,7 +223,6 @@
   .scarcity{background:rgba(91,106,42,.08) !important;color:var(--gold-soft) !important}
   /* 인상 미터/막대 올리브 */
   .fill.image{background:linear-gradient(90deg,#7c8a45,var(--gold-soft)) !important}
-  .mtrack i.g{background:linear-gradient(90deg,#7c8a45,var(--gold-soft)) !important}
   .progress .bar>i{background:linear-gradient(90deg,var(--gold-soft),var(--gold)) !important}
   /* 어두운 블록 위 라이트 올리브 */
   .hallbanner .cap .k{color:#cdd6a3 !important}
