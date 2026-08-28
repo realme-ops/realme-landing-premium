@@ -281,21 +281,18 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
           <div class="cbody"><b>쇼룸 첫 방문 할인쿠폰</b><div class="cprice">정가 <s>₩700,000</s> → <em>₩350,000</em> <b class="coff">50% · ₩350,000 할인</b><br>예약금 ₩20,000은 방문 시 결제액에서 차감</div></div>
           <div class="cexp">1:1 프라이빗 세션이라 주말 예약 가능 인원이 많지 않습니다.</div>
         </div>
-        <div class="field"><label>할인쿠폰 받을 연락처</label><input id="fPhone" placeholder="010-0000-0000" inputmode="tel"></div>
-        <div class="ferr" id="phoneErr">연락처를 정확히 입력해 주세요.</div>
-        <label class="consent" id="agreeWrap"><input type="checkbox" id="fAgree"><span><span class="req">[필수]</span> 개인정보 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a> <span style="opacity:.75">(쇼룸 예약 안내 목적 · 언제든 삭제 가능)</span></span></label>
-        <div class="ferr" id="agreeErr">개인정보 수집·이용에 동의해 주세요.</div>
-        <button class="cta block" id="submitBtn" onclick="issueCoupon()">쇼룸 예약을 위한 할인쿠폰 발급받기</button>
-        <div class="micro" style="text-align:center">입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
         <div class="risk"><span>✅ 진단자 <b>전용가</b></span><span>✅ 방문 후 불만족 시 <b>환불</b></span><span>✅ <b>1:1 프라이빗</b></span></div>
         <div class="proof">👤 진단을 마치신 분께만 쿠폰이 발급됩니다</div>
         <div class="downsell">실력은 이미 증명하셨습니다. 남은 건 첫인상 하나입니다.</div>
       </div>
     </div>
 
-    <div id="couponBox" class="hidden">
-      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>할인쿠폰이 발급되었습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
-      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
+    <!-- 게이트에서 이미 발급된 쿠폰을 여기서 처음 보여준다(스펙 §7.1).
+         게이트에서 쿠폰을 꺼내면 보상이 "결과"와 "쿠폰"으로 쪼개져 둘 다 약해진다. -->
+    <div id="couponBox">
+      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">진단 완료자 전용 쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>아래에서 예약을 완료하시면 50% 할인이 적용됩니다.</p></div>
+      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">50% 쿠폰으로 쇼룸 예약하기 →</a>
+      <div class="micro" style="text-align:center">예약금 ₩20,000 · 방문 후 불만족 시 전액 환불</div>
       <button class="cta block secondary" style="margin-top:10px" onclick="share(this)">주변 전문직 지인에게 진단 추천하기</button>
       
     </div>
@@ -471,30 +468,38 @@ function renderResult(){
 
 // 퀴즈 마지막 문항 다음의 진입점. 이미 번호를 낸 사람은 게이트를 건너뛴다.
 function finish(){ if(gatePassed()) renderResult(); else showGate(); }
-function toForm(){trk('sticky_cta_click',{target:'coupon_form'});document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
+// 게이트 도입 후 남은 행동은 예약뿐이다 — 스티키 CTA 는 결제 CTA 로 데려간다(스펙 결정 13).
+function toForm(){trk('sticky_cta_click',{target:'checkout'});var t=document.getElementById('couponBox')||document.getElementById('lockBox');if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
 // 쿠폰 발급 시 숨기고 재진단 시 되살리는 섹션 목록.
-// issueCoupon() 과 restart() 가 반드시 같은 목록을 봐야 한다.
+// submitGate() 과 restart() 가 반드시 같은 목록을 봐야 한다.
 // (과거 #persuade 누락으로 재진단 시 사례·FAQ가 사라지는 버그가 있었다 — CLAUDE.md §9)
 // 섹션을 추가·삭제할 때는 이 배열만 고친다.
 window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
-function issueCoupon(){
-  const btn=document.getElementById('submitBtn');
-  const ph=document.getElementById('fPhone'), pe=document.getElementById('phoneErr'), ae=document.getElementById('agreeErr');
+/* 게이트 제출 = 리드 확보 + 쿠폰 발급 + 결과 공개.
+   여기서 결제 페이지로 보내지 않는다 — 번호를 낸 이유가 "결과를 보려고"이기 때문이다.
+   결제는 결과를 다 보고 본인이 눌러서 간다(그래서 trkCTA 도 여기서 쏘지 않는다). */
+function submitGate(){
+  const btn=document.getElementById('gateSubmit');
+  const ph=document.getElementById('gPhone'), pe=document.getElementById('gPhoneErr'), ae=document.getElementById('gAgreeErr');
   ph.classList.remove('err'); if(pe)pe.style.display='none'; if(ae)ae.style.display='none';
   if(ph.value.replace(/\D/g,'').length<9){ph.classList.add('err'); if(pe)pe.style.display='block'; ph.focus(); trk('form_error',{field:'phone'}); return;}
-  const ag=document.getElementById('fAgree'), aw=document.getElementById('agreeWrap'); aw.classList.remove('err');
+  const ag=document.getElementById('gAgree'), aw=document.getElementById('gAgreeWrap'); aw.classList.remove('err');
   if(!ag.checked){aw.classList.add('err'); if(ae)ae.style.display='block'; trk('form_error',{field:'agree'}); return;}
   if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
+  const phone=ph.value.replace(/\D/g,'');
   const code='REALME-'+Math.floor(1000+Math.random()*9000);
-  document.getElementById('couponCode').textContent=code;
-  const cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(code,ph.value.replace(/\D/g,''));
+  window.__coupon=code;
+  markGatePassed(code,phone);
+  const cc=document.getElementById('couponCode'); if(cc)cc.textContent=code;
+  const cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(code,phone);
 
   // 구글시트 프리미엄 탭 적재 (전화번호는 여기서만 남고 GA4로는 절대 보내지 않음)
   try{
     const q=window.inboundParams?window.inboundParams():{};
     const s=scores(), r=statusRaw();
     sendLead({
-      phone:        ph.value.replace(/\D/g,''),
+      path:         'gate',
+      phone:        phone,
       score:        s.im,
       status_score: s.st,
       job_p:        r.job_p,
@@ -519,36 +524,45 @@ function issueCoupon(){
   // r 은 위 sendLead 블록의 r 과 별개다 — 그 블록의 try 스코프 밖이라 여기서 다시 계산한다.
   try{
     const r=statusRaw();
-    if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code,
+    // path 로 게이트 리드와 옛 데이터를 구분한다 — generate_lead 의 의미가
+    // "예약 의향"에서 "결과 열람"으로 바뀌었기 때문이다. 섞어서 해석하면 안 된다.
+    if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',path:'gate',coupon:code,
       ql:r.ql,job_p:r.job_p,income_p:r.income_p});
     if(window.fbq){
-      fbq('track','CompleteRegistration',{content_name:'premium_coupon',
+      fbq('track','CompleteRegistration',{content_name:'premium_gate',
         value:(r.income_mid||0),currency:'KRW',ql:r.ql});
       if(r.ql!=='NQ')fbq('trackCustom','QualifiedLead',{ql:r.ql,value:(r.income_mid||0),currency:'KRW'});
     }
   }catch(e){}
-  vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
-  // 쿠폰 발급 완료 화면을 거치지 않고 곧장 예약금 결제로 보낸다.
-  // - 결제 CTA 클릭 이벤트는 사용자가 더 이상 그 버튼을 누르지 않으므로 여기서 대신 쏜다.
-  // - sendLead 1차 경로는 sendBeacon 이라 이탈해도 전송되지만, 비콘이 막힌 브라우저에서는
-  //   fetch 폴백과 gtag/fbq 전송이 아직 진행 중일 수 있어 짧게 유예를 두고 이동한다.
-  // - 결과 화면 섹션을 숨기지 않는다: 결제창에서 뒤로가기로 돌아왔을 때(bfcache 복원 포함)
-  //   빈 페이지가 아니라 정상 결과 화면이 보여야 한다.
-  try{ trkCTA(); }catch(e){}
-  const dest=checkoutURL(code,ph.value.replace(/\D/g,''));
-  if(btn){btn.textContent='예약 페이지로 이동 중…';}
   try{ if(window.saveState)window.saveState(); }catch(e){}
-  setTimeout(function(){ window.location.href=dest; },700);
+  // 결과 화면 섹션을 숨기지 않는다: 결제창에서 뒤로가기로 돌아왔을 때(bfcache 복원 포함)
+  // 빈 페이지가 아니라 정상 결과 화면이 보여야 한다.
+  renderResult();
+}
+
+/* 번호를 내지 않고 오퍼만 보러 가는 우회 경로(스펙 결정 27).
+   이 타깃은 개인정보 제출에 보수적이라, "번호는 안 내지만 돈은 낼 수 있는" 층을 버리지 않기
+   위한 문이다. 게이트는 통과시키지 않는다 — 결과·해석은 잠긴 상태로 두고 오퍼만 보여준다. */
+function bypassToOffer(){
+  trk('offer_bypass_click',{});
+  try{ if(window.gtag)gtag('event','offer_bypass_click',{landing:'premium'}); }catch(e){}
+  document.getElementById('gate').classList.add('hidden');
+  const R=document.getElementById('result');
+  R.classList.remove('hidden'); R.classList.add('bypass-mode');
+  const t=document.querySelector('#result .bridge')||document.getElementById('lockBox');
+  if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  try{ if(window.nav)window.nav('result'); }catch(e){}
+  return false;
 }
 function restart(){
   trk('quiz_restart');
   try{for(var i=0;i<answers.length;i++)answers[i]=null;}catch(e){}
   idx=0;
   var byId=function(id){return document.getElementById(id);}, q=function(s){return document.querySelector(s);};
-  byId('result').classList.add('hidden');
-  var cb=byId('couponBox'); if(cb)cb.classList.add('hidden');
+  var R=byId('result'); R.classList.add('hidden'); R.classList.remove('bypass-mode');
+  byId('gate').classList.add('hidden');
   window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
-  var sb=byId('submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+  var sb=byId('gateSubmit'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
   byId('landing').classList.add('hidden'); byId('quiz').classList.remove('hidden');
   render();
   try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}
@@ -602,7 +616,7 @@ paintHero();
 </script>
 
 
-<div id="stickyCTA" class=""><button class="cta block" onclick="toForm()">쇼룸 예약을 위한 할인쿠폰 발급받기</button></div>
+<div id="stickyCTA" class=""><button class="cta block" onclick="toForm()">50% 쿠폰으로 쇼룸 예약하기 →</button></div>
 
 
 
@@ -618,8 +632,10 @@ paintHero();
   window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} });
   try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
   var sc=$('stickyCTA');
-  function updSticky(){ if(!sc)return; var res=$('result'), cb=$('couponBox'), lb=$('lockBox');
-    if(!res||res.classList.contains('hidden') || (cb&&!cb.classList.contains('hidden'))){ sc.classList.remove('show'); return; }
+  // 게이트 화면에서는 스티키를 숨긴다 — 거기서 할 행동은 번호 입력 하나뿐이다.
+  function updSticky(){ if(!sc)return; var res=$('result'), g=$('gate'), lb=$('couponBox');
+    if(g&&!g.classList.contains('hidden')){ sc.classList.remove('show'); return; }
+    if(!res||res.classList.contains('hidden')){ sc.classList.remove('show'); return; }
     var vis=false; if(lb){ var r=lb.getBoundingClientRect(); vis=(r.top<window.innerHeight-40 && r.bottom>60); }
     if(window.scrollY>300 && !vis){ sc.classList.add('show'); } else { sc.classList.remove('show'); }
   }
@@ -638,7 +654,7 @@ paintHero();
  var bar=document.getElementById('editbar'); if(!bar) return;
  try{ if(/[?&]edit=1|#edit/.test(location.href)) bar.style.display='flex'; }catch(e){}
  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); bar.style.display=(bar.style.display==='flex')?'none':'flex'; } });
- var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#submitBtn,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.stepc b,.stepc p,.stack li .t,.stack li .v,.consent>span,.micro";
+ var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.stepc b,.stepc p,.stack li .t,.stack li .v,.consent>span,.micro";
  function setEd(on){document.querySelectorAll(SEL).forEach(function(el){el.contentEditable=on?'true':'false';});}
  function showEd(on){bar.querySelectorAll('.ed').forEach(function(b){b.classList.toggle('hidden',!on);});}
  function pick(cb){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){if(i.files[0])cb(i.files[0]);};i.click();}
@@ -673,7 +689,7 @@ paintHero();
    if(q('#landing'))q('#landing').classList.remove('hidden');
    ['#quiz','#result','#couponBox'].forEach(function(s){var e=q(s);if(e)e.classList.add('hidden');});
    window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s);if(e)e.classList.remove('hidden');});
-   var sb=q('#submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+   var sb=q('#gateSubmit'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
    var sc=q('#stickyCTA'); if(sc)sc.classList.remove('show');
    var html='<!DOCTYPE html>\n'+c.outerHTML;
    var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download='리얼미_랜딩_소득형.html'; document.body.appendChild(a); a.click(); a.remove();
