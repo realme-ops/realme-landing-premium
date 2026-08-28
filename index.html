@@ -186,6 +186,22 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
   <div class="navq"><button class="back" id="backBtn" onclick="back()">← 이전</button><span></span></div>
 </div></div>
 
+<!-- ===== 연락처 게이트 (퀴즈 10번째 단계처럼 보이게) =====
+     클래스는 #quiz 와 동일한 것만 쓴다(.progress/.bar/.stepn/.ici-hero/.field/.consent).
+     새 카드처럼 보이면 "추가 요구"로 읽히고, 같은 카드로 보이면 "마지막 항목"으로 읽힌다. -->
+<div id="gate" class="diag hidden"><div class="card">
+  <div class="progress"><div class="bar"><i style="width:100%"></i></div><div class="stepn">마지막 단계</div></div>
+  <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="gateScore">0</span><span class="unit"> / 100</span></div></div>
+  <h2 class="ghead">연락처만 남기면 결과 전체가 바로 열립니다</h2>
+  <div class="field"><label>연락처</label><input id="gPhone" placeholder="010-0000-0000" inputmode="tel"></div>
+  <div class="ferr" id="gPhoneErr">연락처를 정확히 입력해 주세요.</div>
+  <label class="consent" id="gAgreeWrap"><input type="checkbox" id="gAgree"><span><span class="req">[필수]</span> 연락처 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a> <span style="opacity:.75">(진단 결과 안내 목적 · 언제든 삭제 가능)</span></span></label>
+  <div class="ferr" id="gAgreeErr">개인정보 수집·이용에 동의해 주세요.</div>
+  <button class="cta block" id="gateSubmit" onclick="submitGate()">내 결과 확인하기</button>
+  <div class="micro" style="text-align:center">결제 없이 결과가 바로 열립니다</div>
+  <div class="bypass"><a href="#" id="offerBypass" onclick="return bypassToOffer()">번호 없이 원데이플랜만 보기 →</a></div>
+</div></div>
+
 <!-- ===== 결과 + 오퍼 + 설득 ===== -->
 <div id="result" class="diag hidden">
   <div class="card">
