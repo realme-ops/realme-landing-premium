@@ -474,7 +474,7 @@ function toForm(){trk('sticky_cta_click',{target:'checkout'});var t=document.get
 // submitGate() 과 restart() 가 반드시 같은 목록을 봐야 한다.
 // (과거 #persuade 누락으로 재진단 시 사례·FAQ가 사라지는 버그가 있었다 — CLAUDE.md §9)
 // 섹션을 추가·삭제할 때는 이 배열만 고친다.
-window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
+window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','#consult','#resultTop','#couponBox','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
 /* 게이트 제출 = 리드 확보 + 쿠폰 발급 + 결과 공개.
    여기서 결제 페이지로 보내지 않는다 — 번호를 낸 이유가 "결과를 보려고"이기 때문이다.
    결제는 결과를 다 보고 본인이 눌러서 간다(그래서 trkCTA 도 여기서 쏘지 않는다). */
@@ -563,6 +563,10 @@ function restart(){
   byId('gate').classList.add('hidden');
   window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
   var sb=byId('gateSubmit'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+  // 해석 섹션은 접수 화면이 아니라 폼 상태로 되돌린다.
+  var cf=byId('consultForm'); if(cf)cf.classList.remove('hidden');
+  var cd=byId('consultDone'); if(cd)cd.classList.add('hidden');
+  var cs=byId('consultSubmit'); if(cs){cs.disabled=false; cs.removeAttribute('data-busy'); cs.style.opacity='';}
   byId('landing').classList.add('hidden'); byId('quiz').classList.remove('hidden');
   render();
   try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}
@@ -624,13 +628,16 @@ paintHero();
 (function(){
   var CK='realme_quiz_v1';
   var $=function(id){return document.getElementById(id);};
-  function screenNow(){ if(!$('result').classList.contains('hidden'))return 'result'; if(!$('quiz').classList.contains('hidden'))return 'quiz'; return 'landing'; }
+  function screenNow(){ if(!$('result').classList.contains('hidden'))return 'result'; if(!$('gate').classList.contains('hidden'))return 'gate'; if(!$('quiz').classList.contains('hidden'))return 'quiz'; return 'landing'; }
   window.saveState=function(){ try{ sessionStorage.setItem(CK, JSON.stringify({idx:idx, answers:answers, screen:screenNow()})); }catch(e){} };
   window.nav=function(screen,replace){ try{ history[replace?'replaceState':'pushState']({screen:screen,idx:idx},''); }catch(e){} };
-  function showLanding(){ $('result').classList.add('hidden'); $('quiz').classList.add('hidden'); $('landing').classList.remove('hidden'); }
-  function showQuiz(i){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden'); idx=Math.max(0,Math.min(QUESTIONS.length-1,i||0)); render(); }
-  window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} });
-  try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
+  function showLanding(){ $('result').classList.add('hidden'); $('gate').classList.add('hidden'); $('quiz').classList.add('hidden'); $('landing').classList.remove('hidden'); }
+  function showQuiz(i){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); $('gate').classList.add('hidden'); $('quiz').classList.remove('hidden'); idx=Math.max(0,Math.min(QUESTIONS.length-1,i||0)); render(); }
+  function showGateScreen(){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); try{showGate();}catch(e){} }
+  window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} else if(s.screen==='gate'){showGateScreen();} });
+  // 복원 규칙: 결과 화면이었더라도 발급 이력이 없으면 게이트로 되돌린다(우회 방지).
+  // finish() 가 gatePassed() 로 그 판단을 하므로 여기서는 finish() 만 부르면 된다.
+  try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='gate'||d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
   var sc=$('stickyCTA');
   // 게이트 화면에서는 스티키를 숨긴다 — 거기서 할 행동은 번호 입력 하나뿐이다.
   function updSticky(){ if(!sc)return; var res=$('result'), g=$('gate'), lb=$('couponBox');
