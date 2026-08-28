@@ -400,27 +400,61 @@ function persona(st,im){const hiS=st>=70,hiI=im>=65;
 function fmtWon(w){w=Math.round(w/1e6)*1e6;const man=Math.round(w/1e4);
   if(man>=10000){const e=Math.floor(man/10000),r=man%10000;return '약 '+e+'억'+(r?' '+r.toLocaleString()+'만':'')+' 원';}
   return '약 '+man.toLocaleString()+'만 원';}
-function finish(){
+/* ===== 연락처 게이트 =====
+   퀴즈 완료 → 게이트(번호) → 결과. 번호를 낸 사람만 결과를 본다.
+   통과 이력을 localStorage 에 남기는 이유: 같은 번호를 다시 제출하면 시트가 DUP 로
+   조용히 거절해 리드가 유실되고(비콘이라 클라이언트는 성공으로 보인다), 무엇보다
+   이미 번호를 낸 사람에게 또 요구하면 흐름이 끊긴다. */
+var GATE_KEY='realme_gate_v1';
+function gatePassed(){
+  try{ var v=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); return !!(v&&v.code); }
+  catch(e){ return false; }
+}
+function markGatePassed(code,phone){
+  try{ localStorage.setItem(GATE_KEY, JSON.stringify({code:code, phone:phone||'', at:Date.now()})); }catch(e){}
+}
+
+// 점수·페르소나 계산만 한다. DOM 을 건드리지 않는다 — 게이트와 결과가 같은 값을 쓰기 때문이다.
+function computeScores(){
+  var s=scores(), intent=intentVal(), p=persona(s.st,s.im);
+  return {st:s.st, im:s.im, intent:intent, p:p, rank:Math.max(1,Math.round((100-s.st)*0.8)+1)};
+}
+
+function showGate(){
+  var c=computeScores();
   document.getElementById('pbar').style.width='100%';
-  const {st,im}=scores(),intent=intentVal(),p=persona(st,im);
-  const rank=Math.max(1,Math.round((100-st)*0.8)+1);
-  trk('quiz_complete',{score:im,status:st,intent:intent,persona:p.name||''});
+  trk('quiz_complete',{score:c.im,status:c.st,intent:c.intent,persona:c.p.name||''});
+  vpv('/premium/gate','프리미엄 진단 - 연락처');
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  var g=document.getElementById('gate'); g.classList.remove('hidden'); g.classList.add('fadein');
+  document.getElementById('gateScore').textContent=c.im;
+  try{if(window.nav)window.nav('gate');if(window.saveState)window.saveState();}catch(e){}
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+function renderResult(){
+  var c=computeScores();
   vpv('/premium/result','프리미엄 진단 - 결과');
   document.getElementById('quiz').classList.add('hidden');
-  const R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
-  document.getElementById('typeName').textContent='「'+p.name+'」';
-  document.getElementById('verdict').textContent=p.v;
-  document.getElementById('statusVal').textContent='상위 '+rank+'%';
-  document.getElementById('imageVal').textContent=im+' / 100';
-  var lh=laneHot(intent);
+  document.getElementById('gate').classList.add('hidden');
+  var R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
+  document.getElementById('typeName').textContent='「'+c.p.name+'」';
+  document.getElementById('verdict').textContent=c.p.v;
+  document.getElementById('statusVal').textContent='상위 '+c.rank+'%';
+  document.getElementById('imageVal').textContent=c.im+' / 100';
+  var lh=laneHot(c.intent);
   document.getElementById('laneCareer').classList.toggle('hot',lh.career);
   document.getElementById('laneRel').classList.toggle('hot',lh.rel);
-  setTimeout(()=>{document.getElementById('iciNum').textContent=im;
-    document.getElementById('statusFill').style.width=st+'%';
-    document.getElementById('imageFill').style.width=im+'%';},120);
+  setTimeout(()=>{document.getElementById('iciNum').textContent=c.im;
+    document.getElementById('statusFill').style.width=c.st+'%';
+    document.getElementById('imageFill').style.width=c.im+'%';},120);
   try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
+
+// 퀴즈 마지막 문항 다음의 진입점. 이미 번호를 낸 사람은 게이트를 건너뛴다.
+function finish(){ if(gatePassed()) renderResult(); else showGate(); }
 function toForm(){trk('sticky_cta_click',{target:'coupon_form'});document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
 // 쿠폰 발급 시 숨기고 재진단 시 되살리는 섹션 목록.
 // issueCoupon() 과 restart() 가 반드시 같은 목록을 봐야 한다.
