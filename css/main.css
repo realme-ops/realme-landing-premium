@@ -317,3 +317,14 @@
   #result.bypass-mode .meters,
   #result.bypass-mode #couponBox .money,
   #result.bypass-mode #consult{display:none !important}
+
+  /* ── 결과 최상단 커플 히어로 (2026-08-28) ── */
+  .resultTop{margin:-8px -26px 18px}
+  .rtimg{position:relative;overflow:hidden}
+  .rtimg img{display:block;width:100%;height:auto;max-width:100%}
+  .rtgrad{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,12,16,.94) 0%,rgba(10,12,16,.40) 46%,rgba(10,12,16,0) 78%)}
+  .rtcap{position:absolute;left:20px;right:20px;bottom:16px}
+  .rt1{font-size:16px;font-weight:700;line-height:1.5;color:#fff;word-break:keep-all}
+  /* 오버레이가 항상 어둡기 때문에 테마 변수 대신 고정 밝은색을 쓴다(라이트 테마의 --gold-soft 는 어두운 올리브색이다) */
+  .rt2{margin-top:6px;font-size:14px;color:#e8d5a3;font-style:italic;word-break:keep-all}
+  @media (min-width:520px){.rt1{font-size:19px}.rt2{font-size:15px}}

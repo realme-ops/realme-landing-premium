@@ -206,14 +206,15 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
 <div id="result" class="diag hidden">
   <div class="card">
     <div class="requiz-wrap"><button type="button" class="requiz" onclick="restart()">← 다시 진단</button></div>
-    <div class="baFeature topproof">
-      <div class="eh">분위기가 준비된 남자에게는,<br>기회도 찾아옵니다.</div>
-      <div class="pair">
-        <figure><figcaption>Before</figcaption><img src="images/img-06.jpg" alt="디렉팅 전"></figure>
-        <figure><figcaption>After</figcaption><img src="images/img-07.jpg" alt="디렉팅 후"></figure>
+    <!-- 첫 화면의 임무는 하나다: "나도 저게 될까?" — 그래서 증거(Before/After)는 아래로 내리고
+         여기엔 궁금증만 둔다. 카피는 질문형으로 고정한다(성과 약속 금지). -->
+    <div class="resultTop" id="resultTop">
+      <div class="rtimg"><img src="images/hero-couple.jpg" alt="한강 노을, 나란히 걷는 커플"><div class="rtgrad"></div>
+        <div class="rtcap">
+          <div class="rt1">여자들이 확신을 갖는 남자에겐, 공통점이 있습니다.</div>
+          <div class="rt2">그 확신, 지금 내 인상으로도 줄 수 있을까?</div>
+        </div>
       </div>
-      <div class="cap">"전문 사진을 찍어도 아저씨 같은 느낌이 있었는데, 입사 동기들이 저만 회춘한 것 같다고 뭐가 달라진 거냐 하네요."</div>
-      <div class="by">— IT 대기업 · 30대 · 디렉팅 후 셀프 스타일링&nbsp;</div>
     </div>
     <div class="kicker center">인상 격차 진단 결과</div>
     <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="iciNum">22</span><span class="unit"> / 100</span></div></div>
@@ -227,7 +228,19 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="lanes">
       <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
-      <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-02.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+      <!-- 배경 사진 제거: 같은 커플 사진이 결과 최상단에 크게 있어 한 화면에 두 번 나온다. -->
+      <div class="lane rel hot" id="laneRel"><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+    </div>
+
+    <!-- 증거: 가격보다 앞, 결과보다 뒤 (CLAUDE.md §3) -->
+    <div class="baFeature topproof">
+      <div class="eh">분위기가 준비된 남자에게는,<br>기회도 찾아옵니다.</div>
+      <div class="pair">
+        <figure><figcaption>Before</figcaption><img src="images/img-06.jpg" alt="디렉팅 전"></figure>
+        <figure><figcaption>After</figcaption><img src="images/img-07.jpg" alt="디렉팅 후"></figure>
+      </div>
+      <div class="cap">"전문 사진을 찍어도 아저씨 같은 느낌이 있었는데, 입사 동기들이 저만 회춘한 것 같다고 뭐가 달라진 거냐 하네요."</div>
+      <div class="by">— IT 대기업 · 30대 · 디렉팅 후 셀프 스타일링&nbsp;</div>
     </div>
 
     <!-- 투자 리프레임 -->
