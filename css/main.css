@@ -328,3 +328,17 @@
   /* 오버레이가 항상 어둡기 때문에 테마 변수 대신 고정 밝은색을 쓴다(라이트 테마의 --gold-soft 는 어두운 올리브색이다) */
   .rt2{margin-top:6px;font-size:14px;color:#e8d5a3;font-style:italic;word-break:keep-all}
   @media (min-width:520px){.rt1{font-size:19px}.rt2{font-size:15px}}
+
+  /* ── 진단 해석 섹션 (2026-08-28) ── */
+  #consult{margin:22px 0 10px;padding:18px 16px;border:1px solid var(--line);border-radius:14px;background:var(--bg2)}
+  #consult h2{margin:2px 0 10px}
+  .cintro{font-size:13.5px;line-height:1.75;color:var(--muted);word-break:keep-all;margin:0}
+  .crow{display:flex;gap:10px}
+  .crow .field{flex:1 1 0;min-width:0}
+  .field select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:13px 12px;font-size:15px;font-family:inherit}
+  .field select:focus{outline:none;border-color:var(--gold)}
+  .field input[type=file]{width:100%;font-size:13px;color:var(--muted);font-family:inherit}
+  .photofield .soon{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
+  .photofield input[disabled]{opacity:.45;cursor:not-allowed}
+  .photofield .micro{margin-top:6px}
+  .cdone{text-align:center;font-size:14.5px;margin:6px 0 14px;color:var(--ink)}

@@ -224,10 +224,52 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       <div class="meter"><div class="top"><span class="lbl">이미 갖춘 실력·지위</span><span class="val" id="statusVal" style="color:var(--good)">상위 39%</span></div><div class="track"><div class="fill status" id="statusFill" style="width: 53%;"></div></div></div>
       <div class="meter"><div class="top"><span class="lbl">현재 인상 점수</span><span class="val" id="imageVal" style="color:var(--gold-soft)">22 / 100</span></div><div class="track"><div class="fill image" id="imageFill" style="width: 22%;"></div></div></div>
     </div>
+    <!-- ===== 진단 해석 (통화) =====
+         점수 격차를 본 직후가 "왜 낮은가"에 대한 궁금증이 가장 큰 지점이다.
+         상세 해석은 화면이 아니라 통화로 준다 — 사람이 사진을 보고 말해주는 게 자동 텍스트보다
+         강한 보상이고, 그 통화가 곧 상담(클로징) 지점이기도 하다. -->
+    <div id="consult">
+      <div class="sectlabel">진단 해석</div>
+      <h2>점수의 이유는, 사람이 봐야 보입니다</h2>
+      <div id="consultForm">
+        <p class="cintro">지금 쓰는 소개용 사진과 기본 정보를 남기시면, 전문가가 직접 보고 <b>통화로 해석</b>해 드립니다. 순차적으로 연락드립니다.</p>
+        <div class="crow">
+          <div class="field"><label>나이</label>
+            <select id="cAge">
+              <option value="">선택</option>
+              <option>20대 후반</option><option>30대 초반</option><option>30대 중반</option>
+              <option>30대 후반</option><option>40대 초반</option><option>40대 중반</option>
+              <option>45세 이상</option>
+            </select></div>
+          <div class="field"><label>키</label>
+            <select id="cHeight">
+              <option value="">선택</option>
+              <option>165cm 미만</option><option>165~169cm</option><option>170~174cm</option>
+              <option>175~179cm</option><option>180cm 이상</option>
+            </select></div>
+        </div>
+        <div class="field photofield">
+          <label>소개용 사진 <span class="soon">곧 지원</span></label>
+          <input type="file" id="cPhoto" accept="image/*" disabled>
+          <div class="micro">준비 중입니다 — 통화 때 요청드립니다</div>
+        </div>
+        <label class="consent" id="cAgreeWrap"><input type="checkbox" id="cAgree"><span><span class="req">[필수]</span> 진단 해석을 위한 나이·키 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a></span></label>
+        <div class="ferr" id="cAgreeErr">개인정보 수집·이용에 동의해 주세요.</div>
+        <button class="cta block secondary" id="consultSubmit" onclick="requestConsult()">진단 해석 받기 (통화 5분)</button>
+        <div class="micro" style="text-align:center">결제 없이 접수됩니다</div>
+      </div>
+      <div id="consultDone" class="hidden">
+        <div class="cdone">✅ 접수됐습니다. 순차적으로 연락드립니다.</div>
+        <a class="cta block" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">50% 쿠폰으로 쇼룸 예약하기 →</a>
+      </div>
+    </div>
+
     <!-- 위협형 금액 프레임 블록 제거 (offers 스킬 가이드) -->
     <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="lanes">
-      <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
+      <!-- 배경 사진 제거: 연애 레인의 사진을 뺀 뒤 한쪽만 사진이라 비대칭이 됐고,
+           바로 위 커플 히어로가 이미 큰 이미지라 여기서 사진을 더 쓸 이유가 없다. -->
+      <div class="lane career hot" id="laneCareer"><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
       <!-- 배경 사진 제거: 같은 커플 사진이 결과 최상단에 크게 있어 한 화면에 두 번 나온다. -->
       <div class="lane rel hot" id="laneRel"><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
     </div>
@@ -475,6 +517,16 @@ function renderResult(){
   setTimeout(()=>{document.getElementById('iciNum').textContent=c.im;
     document.getElementById('statusFill').style.width=c.st+'%';
     document.getElementById('imageFill').style.width=c.im+'%';},120);
+  // 새로고침·재방문 복원: 쿠폰 코드와 결제 링크는 저장소에서 되살린다.
+  // (이게 없으면 재방문자는 "쿠폰코드 —" 를 보고, 결제 링크에 coupon·phone 이 빠진다)
+  try{
+    var g=JSON.parse(localStorage.getItem(GATE_KEY)||'null');
+    if(g&&g.code){
+      window.__coupon=g.code;
+      var cc=document.getElementById('couponCode'); if(cc)cc.textContent=g.code;
+      var cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(g.code,g.phone||'');
+    }
+  }catch(e){}
   try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
@@ -553,6 +605,49 @@ function submitGate(){
   renderResult();
 }
 
+/* 진단 해석 신청. 번호는 게이트에서 이미 받았으므로 여기서는 나이·키만 받는다.
+   type:'update' 로 보내는 이유: 같은 번호로 새 행을 만들면 시트가 DUP 로 조용히 거절해
+   이 사람이 해석까지 신청했다는 기록이 남지 않는다(비콘이라 클라이언트는 성공으로 보인다). */
+function requestConsult(){
+  const btn=document.getElementById('consultSubmit');
+  const ae=document.getElementById('cAgreeErr'), aw=document.getElementById('cAgreeWrap');
+  if(ae)ae.style.display='none'; if(aw)aw.classList.remove('err');
+  if(!document.getElementById('cAgree').checked){
+    if(aw)aw.classList.add('err'); if(ae)ae.style.display='block';
+    trk('form_error',{field:'consult_agree'}); return;
+  }
+  if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
+
+  const age=document.getElementById('cAge').value||'';
+  const height=document.getElementById('cHeight').value||'';
+  window.__consultAge=age;
+
+  try{
+    var g=null; try{ g=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+    const r=statusRaw();
+    sendLead({
+      type:   'update',
+      path:   'consult',
+      phone:  (g&&g.phone)||'',
+      coupon: (g&&g.code)||window.__coupon||'',
+      age:    age,
+      height: height,
+      ql:     r.ql,
+      landing:'premium'
+    });
+  }catch(e){}
+
+  try{
+    const r=statusRaw(), c=computeScores();
+    if(window.gtag)gtag('event','consult_request',{landing:'premium',ql:r.ql,persona:c.p.name||'',age:age});
+  }catch(e){}
+  trk('consult_request',{age:age});
+
+  document.getElementById('consultForm').classList.add('hidden');
+  const d=document.getElementById('consultDone'); d.classList.remove('hidden');
+  d.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
 /* 번호를 내지 않고 오퍼만 보러 가는 우회 경로(스펙 결정 27).
    이 타깃은 개인정보 제출에 보수적이라, "번호는 안 내지만 돈은 낼 수 있는" 층을 버리지 않기
    위한 문이다. 게이트는 통과시키지 않는다 — 결과·해석은 잠긴 상태로 두고 오퍼만 보여준다. */
@@ -562,6 +657,9 @@ function bypassToOffer(){
   document.getElementById('gate').classList.add('hidden');
   const R=document.getElementById('result');
   R.classList.remove('hidden'); R.classList.add('bypass-mode');
+  // 쿠폰 없이 결제로 가므로 "50% 쿠폰으로" 라고 쓰면 그 문장이 거짓이 된다.
+  const cl=document.getElementById('checkoutLink');
+  if(cl){ cl.textContent='원데이플랜 쇼룸 예약하기 →'; cl.href='https://impact-me.real-me.co.kr/secret-checkout'; }
   const t=document.querySelector('#result .bridge')||document.getElementById('lockBox');
   if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
   try{ if(window.nav)window.nav('result'); }catch(e){}
