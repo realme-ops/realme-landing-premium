@@ -589,6 +589,7 @@ function submitGate(){
     sendLead({
       path:         'gate',
       phone:        phone,
+      coupon:       code,
       score:        s.im,
       status_score: s.st,
       job_p:        r.job_p,
@@ -677,7 +678,10 @@ function uploadFiles(files,phone){
   var jobs=Array.prototype.slice.call(files,0,5).map(function(f){
     return (isZip(f)?fileToDataURL(f):resizeImage(f,1280,0.72)).then(function(data){
       if(!data)return false;
-      return fetch(cfg.LEAD_ENDPOINT,{method:'POST',
+      // mode:'no-cors' — Apps Script /exec 응답에는 CORS 헤더가 없어서, 기본 모드로 보내면
+      // 서버가 정상 처리했는데도 응답을 읽지 못해 fetch 가 reject 된다(실패로 오기록된다).
+      // 대신 응답 내용도 못 읽으므로, 적재 확인은 드라이브 폴더로 해야 한다.
+      return fetch(cfg.LEAD_ENDPOINT,{method:'POST',mode:'no-cors',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify({type:'photo',phone:phone,filename:f.name,kind:isZip(f)?'zip':'image',data:data})
       }).then(function(){return true;}).catch(function(){return false;});
