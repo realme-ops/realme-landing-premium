@@ -353,3 +353,6 @@
 
   .photofield .optb{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
   .picked{margin-top:6px;font-size:11.5px;color:var(--gold);word-break:break-all}
+
+  .flowline{margin:14px 0 4px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px;line-height:1.6;color:var(--muted);text-align:center;word-break:keep-all}
+  .flowline b{color:var(--ink)}

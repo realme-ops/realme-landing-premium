@@ -117,9 +117,19 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       diag('lead_queued',{depth:q.length});
     }catch(e){ diag('lead_send_fail',{path:'queue'}); }
   }
+  // 로컬에서 띄운 페이지는 운영 시트로 리드를 보내지 않는다.
+  // 비콘은 origin 과 무관하게 그대로 나가기 때문에, 이 가드가 없으면 로컬 테스트가
+  // 그대로 운영 리드가 되어 상담원이 가짜 번호로 전화를 건다. (2026-08-31 실제로 발생)
+  function isLocal(){
+    try{ var h=location.hostname;
+      return h==='localhost'||h==='127.0.0.1'||h==='::1'||h===''||location.protocol==='file:';
+    }catch(e){ return false; }
+  }
+  window.__isLocal=isLocal;
   window.sendLead=function(obj){
     var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT;
     if(!url)return;
+    if(isLocal()){ diag('lead_skipped_local',{path:(obj&&obj.path)||''}); try{console.info('[REALME] 로컬이라 리드 전송을 건너뜁니다:',obj);}catch(e){} return; }
     var payload;
     try{ payload=JSON.stringify(obj); }catch(e){ diag('lead_send_fail',{path:'stringify'}); return; }
     if(beaconSend(url,payload)){ diag('lead_send_ok',{path:'beacon'}); return; }   // 1차
@@ -299,7 +309,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <!-- 투자 리프레임 -->
     <div class="invest">
       <div class="k">진단이 끝났습니다. 이제 중요한 건 이겁니다</div>
-      <p>첫인상은 소개·데이트마다 가장 먼저 읽히는 <b>자산</b>입니다. 진단이 찾은 <b>인상 격차</b>는, 이미 가진 조건이 아직 첫인상으로 다 표현되지 않았다는 겁니다. 그래서 이미지 관리는 '비용'이 아니라 <b>한 번 만들어 평생 쓰는 투자</b>입니다 — 얻은 기준과 사진은 그대로 남으니까요.</p>
+      <p>진단이 찾은 <b>인상 격차</b>는, 이미 가진 조건이 아직 첫인상으로 다 표현되지 않았다는 뜻입니다. 그래서 이건 '비용'이 아니라 <b>한 번 만들어 평생 쓰는 투자</b>입니다.</p>
     </div>
 
     <!-- 원데이플랜 단일 오퍼 -->
@@ -309,18 +319,14 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <p class="proofcap">" 덕분에, 남자들을 압도하는 인상을 얻었습니다. "</p>
     <div class="proofstory"><span class="pw">벤처기업 대표 · 30대</span><span class="ps-line"><b class="ps-bl">Before</b>결혼정보회사에 등록해두고 옷은 명품 브랜드만 사모았는데, 업체측에서 여성분들이 제가 좀 더 꾸몄으면 좋겠다고 말했대요. 아, 뭘 어디서부터 해야 할지 답답했어요.</span><span class="ps-line"><b class="ps-al">After</b>인상 디렉팅 이후, 소개팅에서도 훨씬 편해졌고 분위기가 달라졌다는 말을 자주 들어요. 인상에 대한 고민이 사라지니 사람 만나는 자리 자체가 편해졌습니다. ㅎㅎ</span></div>
     <div id="preoffer">
-    <div class="sectlabel">원데이플랜, 하루면 끝납니다.</div>
-    <h2>말로 하는 조언이 아니라, 직접 입어보는 하루입니다</h2>
+    <!-- 구성·절차 상세는 예약 페이지가 전부 갖고 있다(체형·헤어·피부 진단, 스타일링,
+         셀렉션 피팅, 촬영, 개별가 820,000 → 350,000). 여기서 반복하지 않는다. -->
     <div class="hallbanner">
       <img src="images/img-02.jpg" alt="리얼미 쇼룸 복도">
       <div class="grad"></div>
       <div class="cap"><div class="k">REALME SHOWROOM</div><h3>한 공간에서<br>사진 까지.&nbsp;</h3><p>잠실 1:1 프라이빗 라운지</p></div>
     </div>
-    <div class="steps">
-      <div class="stepc"><div class="n">1</div><b>인상 격차 정밀 진단</b><p>실제 내 첫인상이 어떻게 읽히는지, 얼굴형·체형·헤어 조합을 객관적으로 확인</p></div>
-      <div class="stepc"><div class="n">2</div><b>1:1 착장 디렉팅</b><p>내 인상을 살리는 색·핏을 직접 입어보며 익혀 스타일 방향 기준 확보</p></div>
-      <div class="stepc"><div class="n">3</div><b>자연스러운 사진 촬영</b><p>바뀐 인상을 자연스러운 3~5컷으로 남겨 SNS·프로필에 바로 업데이트</p></div>
-    </div>
+    <div class="flowline">90분 안에 <b>진단 → 착장 디렉팅 → 촬영</b>까지 한 자리에서 끝냅니다.</div>
 
     <div class="sectlabel">인상 격차가 맞춰진 남성들은 ?</div>
     <h2>스펙은 그대로. 첫인상만 바뀌었습니다</h2>
@@ -334,11 +340,13 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <div class="locked" id="lockBox">
       <div class="head"><b>🔑 원데이플랜 · 1:1 프라이빗 라운지 (90분)</b><span class="anchor">개별가 합계 ₩820,000 · 정가 <s>₩700,000</s> → 진단자 <em>₩350,000</em></span></div>
       <div class="body">
+        <!-- 항목 설명은 예약 페이지에 있다. 여기서는 앵커(개별가 합계)를 세우는 데 필요한
+             항목명과 금액만 남긴다 — 이 낙차가 결정 장벽을 낮추는 장치다(CLAUDE.md §5). -->
         <ul class="stack">
-          <li><span class="t">인상 격차 정밀 진단 (파인딩플랜 포함)</span><span class="v">₩150,000 상당</span></li>
-          <li class="bonus"><span class="t"><span><b>연애·이성 관계 전략 상담</b> — 소개 자리에서의 인상과 태도 방향을 함께 정리합니다</span></span><span class="v">₩120,000 → 무료</span></li>
-          <li><span class="t">1:1 착장 디렉팅 (내게 맞는 색·핏, 혼자서도 재현)</span><span class="v">₩300,000 상당</span></li>
-          <li><span class="t">자연스러운 최신 사진 3~5컷 (SNS·프로필에 바로 사용)</span><span class="v">₩250,000 상당</span></li>
+          <li><span class="t">인상 격차 정밀 진단</span><span class="v">₩150,000 상당</span></li>
+          <li class="bonus"><span class="t"><span><b>연애·이성 관계 전략 상담</b></span></span><span class="v">₩120,000 → 무료</span></li>
+          <li><span class="t">1:1 착장 디렉팅</span><span class="v">₩300,000 상당</span></li>
+          <li><span class="t">자연스러운 최신 사진 3~5컷</span><span class="v">₩250,000 상당</span></li>
         </ul>
         <div class="roi">한 번의 디렉팅으로 얻는 기준과 사진은 <b>평생 다시 씁니다</b>&nbsp;</div>
         <div class="guarantee">🛡 방문 상담 후 불만족 시 <b>예약금 전액 환불</b> · 부담은 예약금뿐입니다</div>
@@ -659,6 +667,8 @@ function resizeImage(file,maxEdge,quality){
 function uploadFiles(files,phone){
   var cfg=window.REALME_CONFIG||{};
   if(!cfg.PHOTO_UPLOAD||!cfg.LEAD_ENDPOINT||!files||!files.length)return Promise.resolve(false);
+  // 리드와 같은 이유로 로컬에서는 파일도 올리지 않는다.
+  if(window.__isLocal&&window.__isLocal()){ try{console.info('[REALME] 로컬이라 첨부 전송을 건너뜁니다');}catch(e){} return Promise.resolve(false); }
   var jobs=Array.prototype.slice.call(files,0,5).map(function(f){
     return (isZip(f)?fileToDataURL(f):resizeImage(f,1280,0.72)).then(function(data){
       if(!data)return false;
@@ -864,7 +874,7 @@ paintHero();
  var bar=document.getElementById('editbar'); if(!bar) return;
  try{ if(/[?&]edit=1|#edit/.test(location.href)) bar.style.display='flex'; }catch(e){}
  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); bar.style.display=(bar.style.display==='flex')?'none':'flex'; } });
- var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.stepc b,.stepc p,.stack li .t,.stack li .v,.consent>span,.micro";
+ var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.flowline,.gpq,.gpby,.stack li .t,.stack li .v,.consent>span,.micro";
  function setEd(on){document.querySelectorAll(SEL).forEach(function(el){el.contentEditable=on?'true':'false';});}
  function showEd(on){bar.querySelectorAll('.ed').forEach(function(b){b.classList.toggle('hidden',!on);});}
  function pick(cb){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){if(i.files[0])cb(i.files[0]);};i.click();}
