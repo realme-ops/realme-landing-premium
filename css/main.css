@@ -282,7 +282,7 @@
   .brand .tagline{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
   .requiz{background:none;border:0;color:var(--muted);font-size:11px;text-decoration:underline;cursor:pointer;font-family:inherit;padding:2px 0}
-  .requiz-wrap{text-align:left;margin-bottom:2px}
+  .requiz-wrap{text-align:left;margin:-16px 0 6px}
   .requiz:hover{color:var(--gold)}
 
 
@@ -302,3 +302,63 @@
  body.editing #stickyCTA{display:none!important}
  .ed-only{display:none}
  .lanebg{position:relative;z-index:6;margin-top:9px;font-size:11px;color:#fff;background:var(--gold);border:0;border-radius:999px;padding:4px 11px;cursor:pointer;font-family:inherit}
+
+  /* ── 연락처 게이트 (2026-08-28) ── */
+  .ghead{text-align:center;font-size:19px;line-height:1.45;margin:16px 0 4px;word-break:keep-all}
+  .bypass{text-align:center;margin-top:14px}
+  .bypass a{font-size:11.5px;color:var(--muted);opacity:.72;text-decoration:underline}
+
+  /* ── 우회 경로: 번호 없이 온 사람에게는 결과·해석을 보여주지 않는다 ── */
+  #result.bypass-mode .topproof,
+  #result.bypass-mode #resultTop,
+  #result.bypass-mode .ici-hero,
+  #result.bypass-mode .typeb,
+  #result.bypass-mode .verdict,
+  #result.bypass-mode .meters,
+  #result.bypass-mode #couponBox .money,
+  #result.bypass-mode #consult{display:none !important}
+
+  /* ── 결과 최상단 커플 히어로 (2026-08-28) ── */
+  .resultTop{margin:-8px -26px 18px}
+  .rtimg{position:relative;overflow:hidden}
+  .rtimg img{display:block;width:100%;height:auto;max-width:100%}
+  .rtgrad{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,12,16,.94) 0%,rgba(10,12,16,.40) 46%,rgba(10,12,16,0) 78%)}
+  .rtcap{position:absolute;left:20px;right:20px;bottom:16px}
+  .rt1{font-size:16px;font-weight:700;line-height:1.5;color:#fff;word-break:keep-all}
+  /* 오버레이가 항상 어둡기 때문에 테마 변수 대신 고정 밝은색을 쓴다(라이트 테마의 --gold-soft 는 어두운 올리브색이다) */
+  .rt2{margin-top:6px;font-size:14px;color:#e8d5a3;font-style:italic;word-break:keep-all}
+  @media (min-width:520px){.rt1{font-size:19px}.rt2{font-size:15px}}
+
+  /* ── 진단 해석 섹션 (2026-08-28) ── */
+  #consult{margin:22px 0 10px;padding:18px 16px;border:1px solid var(--line);border-radius:14px;background:var(--bg2)}
+  #consult h2{margin:2px 0 10px}
+  .cintro{font-size:13.5px;line-height:1.75;color:var(--muted);word-break:keep-all;margin:0}
+  .crow{display:flex;gap:10px}
+  .crow .field{flex:1 1 0;min-width:0}
+  .field select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:13px 12px;font-size:15px;font-family:inherit}
+  .field select:focus{outline:none;border-color:var(--gold)}
+  .field input[type=file]{width:100%;font-size:13px;color:var(--muted);font-family:inherit}
+  .photofield .soon{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
+  .photofield input[disabled]{opacity:.45;cursor:not-allowed}
+  .photofield .micro{margin-top:6px}
+  .cdone{text-align:center;font-size:14.5px;margin:6px 0 14px;color:var(--ink)}
+
+  /* ── 게이트 후기 블록 ── */
+  .gproof{margin:16px 0 8px}
+  .gpimg{border-radius:12px;overflow:hidden;line-height:0;border:1px solid var(--line)}
+  .gpimg img{width:100%;height:auto;display:block}
+  .gpq{margin-top:11px;font-size:13.5px;line-height:1.65;color:var(--ink);word-break:keep-all;text-align:center}
+  .gpby{margin-top:5px;font-size:11.5px;color:var(--muted);text-align:center}
+  .gpnote{margin-top:7px;font-size:10.5px;color:var(--muted);opacity:.65;text-align:center}
+
+  .photofield .optb{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
+  .picked{margin-top:6px;font-size:11.5px;color:var(--gold);word-break:break-all}
+
+  .flowline{margin:14px 0 4px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px;line-height:1.6;color:var(--muted);text-align:center;word-break:keep-all}
+  .flowline b{color:var(--ink)}
+
+  /* 해석 CTA: 결제 CTA(검정)와 색으로 구분되는 강한 보조 버튼 */
+  .cta.consultcta{background:var(--gold) !important;color:#fff !important;border:0 !important;box-shadow:0 12px 30px -14px rgba(0,0,0,.35) !important;font-weight:800}
+  .cta.consultcta:hover{filter:brightness(1.06)}
+
+  .cta.consultcta{margin-top:16px}

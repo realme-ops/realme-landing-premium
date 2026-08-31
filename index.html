@@ -49,7 +49,11 @@
     GA4_ID:        "G-TYWS49LKCM",
     META_PIXEL_ID: "468864818533646",
     // 프리미엄 탭 리드 적재용 Apps Script 웹앱 (/exec URL). 비어 있으면 전송하지 않음.
-    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxlTQ_tuq7p7TZeYB_kNllKr9qjjEEr4nGr4jMvvaIfsjOkgEyTFAFbtdPq7KhTqQOL/exec"
+    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxlTQ_tuq7p7TZeYB_kNllKr9qjjEEr4nGr4jMvvaIfsjOkgEyTFAFbtdPq7KhTqQOL/exec",
+    // 해석용 사진 첨부(선택). 켜기 전에 반드시: ① 개인정보처리방침에 사진 수집·보관·삭제 항목
+    // ② Apps Script v3 패치(사진 분기) ③ Drive 저장 폴더 비공개 권한. (스펙 §10)
+    PHOTO_UPLOAD:  true,
+    PHOTO_MAX_MB:  8
   };
 </script>
 <!-- Google Analytics 4 -->
@@ -113,9 +117,30 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       diag('lead_queued',{depth:q.length});
     }catch(e){ diag('lead_send_fail',{path:'queue'}); }
   }
+  // 로컬에서 띄운 페이지는 운영 시트로 리드를 보내지 않는다.
+  // 비콘은 origin 과 무관하게 그대로 나가기 때문에, 이 가드가 없으면 로컬 테스트가
+  // 그대로 운영 리드가 되어 상담원이 가짜 번호로 전화를 건다. (2026-08-31 실제로 발생)
+  function isLocal(){
+    try{ var h=location.hostname;
+      return h==='localhost'||h==='127.0.0.1'||h==='::1'||h===''||location.protocol==='file:';
+    }catch(e){ return false; }
+  }
+  window.__isLocal=isLocal;
+  // 검토용 초기화: 로컬에서 ?reset=1 로 열면 게이트 통과 이력과 진행 상태를 지우고 처음부터 시작한다.
+  // (한 번 번호를 내면 결정 12 에 따라 게이트를 건너뛰므로, 검토할 때마다 콘솔을 열어야 했다)
+  try{
+    if(isLocal() && /[?&]reset=1(&|$)/.test(location.search)){
+      localStorage.removeItem('realme_gate_v1');
+      sessionStorage.removeItem('realme_quiz_v1');
+      try{console.info('[REALME] reset=1 — 게이트 이력·진행 상태를 지웠습니다');}catch(e){}
+      var q=location.search.replace(/([?&])reset=1(&|$)/,'$1').replace(/[?&]$/,'');
+      history.replaceState(null,'',location.pathname+q);
+    }
+  }catch(e){}
   window.sendLead=function(obj){
     var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT;
     if(!url)return;
+    if(isLocal()){ diag('lead_skipped_local',{path:(obj&&obj.path)||''}); try{console.info('[REALME] 로컬이라 리드 전송을 건너뜁니다:',obj);}catch(e){} return; }
     var payload;
     try{ payload=JSON.stringify(obj); }catch(e){ diag('lead_send_fail',{path:'stringify'}); return; }
     if(beaconSend(url,payload)){ diag('lead_send_ok',{path:'beacon'}); return; }   // 1차
@@ -161,9 +186,9 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
 
 <!-- ===== 미니 히어로 (광고 직행) ===== -->
 <main id="landing"><section class="hero"><div class="wrap">
-  <div class="kicker" id="h-kicker">연봉은 1억 찍는데, 다 바칠 그녀가 없다면.. </div>
+  <div class="kicker" id="h-kicker">연봉은 1억이상, 소개 자리에서만 안 통하는 남자만 보세요.</div>
   <h1 id="h-head">실력은 <span class="hl">상위권</span> 인데,<br>첫 <span class="hl">인상</span>도 그럴까요?</h1>
-  <p class="sub" id="h-sub">당신의 연봉이 실력에 못 미치는 이유.</p>
+  <p class="sub" id="h-sub">연애 고민에 쓰던 에너지를, 일에 다 쓰게 해드립니다.</p>
   <div class="cta-wrap">
     <button class="cta" id="h-cta" onclick="start()">내 인상 격차 확인하기</button>
     <div class="micro">결과 즉시 확인 · 가입 불필요 · 연락처는 마지막에만</div>
@@ -186,18 +211,42 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
   <div class="navq"><button class="back" id="backBtn" onclick="back()">← 이전</button><span></span></div>
 </div></div>
 
+<!-- ===== 연락처 게이트 (퀴즈 10번째 단계처럼 보이게) =====
+     클래스는 #quiz 와 동일한 것만 쓴다(.progress/.bar/.stepn/.ici-hero/.field/.consent).
+     새 카드처럼 보이면 "추가 요구"로 읽히고, 같은 카드로 보이면 "마지막 항목"으로 읽힌다. -->
+<div id="gate" class="diag hidden"><div class="card">
+  <div class="progress"><div class="bar"><i style="width:100%"></i></div><div class="stepn">마지막 단계</div></div>
+  <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="gateScore">0</span><span class="unit"> / 100</span></div></div>
+  <h2 class="ghead">연락처만 남기면 결과 전체가 바로 열립니다</h2>
+  <!-- 번호를 내는 이유가 되는 증거. 폼보다 앞에 둔다.
+       실제 회원 사진·발언(2026-08-31 사용자 확인). 얼굴은 블러 처리된 원본을 그대로 쓴다. -->
+  <div class="gproof">
+    <div class="gpimg"><img src="images/gate-couple.jpg" alt="디렉팅 후 연애 중인 회원"></div>
+    <div class="gpq">"제 여자친구가 어디서든 제일 빛나요. 자신감을 찾으니 연애도 따라왔어요."</div>
+    <div class="gpby">— 31세 금융전문직 김*수</div>
+  </div>
+  <div class="field"><label>연락처</label><input id="gPhone" placeholder="010-0000-0000" inputmode="tel"></div>
+  <div class="ferr" id="gPhoneErr">연락처를 정확히 입력해 주세요.</div>
+  <label class="consent" id="gAgreeWrap"><input type="checkbox" id="gAgree"><span><span class="req">[필수]</span> 연락처 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a> <span style="opacity:.75">(진단 결과 안내 목적 · 언제든 삭제 가능)</span></span></label>
+  <div class="ferr" id="gAgreeErr">개인정보 수집·이용에 동의해 주세요.</div>
+  <button class="cta block" id="gateSubmit" onclick="submitGate()">내 결과 확인하기</button>
+  <div class="micro" style="text-align:center">결제 없이 결과가 바로 열립니다</div>
+  <div class="bypass"><a href="#" id="offerBypass" onclick="return bypassToOffer()">번호 없이 원데이플랜만 보기 →</a></div>
+</div></div>
+
 <!-- ===== 결과 + 오퍼 + 설득 ===== -->
 <div id="result" class="diag hidden">
   <div class="card">
     <div class="requiz-wrap"><button type="button" class="requiz" onclick="restart()">← 다시 진단</button></div>
-    <div class="baFeature topproof">
-      <div class="eh">분위기가 준비된 남자에게는,<br>기회도 찾아옵니다.</div>
-      <div class="pair">
-        <figure><figcaption>Before</figcaption><img src="images/img-06.jpg" alt="디렉팅 전"></figure>
-        <figure><figcaption>After</figcaption><img src="images/img-07.jpg" alt="디렉팅 후"></figure>
+    <!-- 첫 화면의 임무는 하나다: "나도 저게 될까?" — 그래서 증거(Before/After)는 아래로 내리고
+         여기엔 궁금증만 둔다. 카피는 질문형으로 고정한다(성과 약속 금지). -->
+    <div class="resultTop" id="resultTop">
+      <div class="rtimg"><img src="images/hero-couple.jpg" alt="한강 노을, 나란히 걷는 커플"><div class="rtgrad"></div>
+        <div class="rtcap">
+          <div class="rt1">여자들이 확신을 갖는 남자에겐, 공통점이 있습니다.</div>
+          <div class="rt2">그 확신, 지금 내 인상으로도 줄 수 있을까?</div>
+        </div>
       </div>
-      <div class="cap">"전문 사진을 찍어도 아저씨 같은 느낌이 있었는데, 입사 동기들이 저만 회춘한 것 같다고 뭐가 달라진 거냐 하네요."</div>
-      <div class="by">— IT 대기업 · 30대 · 디렉팅 후 셀프 스타일링&nbsp;</div>
     </div>
     <div class="kicker center">인상 격차 진단 결과</div>
     <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="iciNum">22</span><span class="unit"> / 100</span></div></div>
@@ -207,17 +256,69 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
       <div class="meter"><div class="top"><span class="lbl">이미 갖춘 실력·지위</span><span class="val" id="statusVal" style="color:var(--good)">상위 39%</span></div><div class="track"><div class="fill status" id="statusFill" style="width: 53%;"></div></div></div>
       <div class="meter"><div class="top"><span class="lbl">현재 인상 점수</span><span class="val" id="imageVal" style="color:var(--gold-soft)">22 / 100</span></div><div class="track"><div class="fill image" id="imageFill" style="width: 22%;"></div></div></div>
     </div>
+    <!-- ===== 진단 해석 (통화) =====
+         점수 격차를 본 직후가 "왜 낮은가"에 대한 궁금증이 가장 큰 지점이다.
+         상세 해석은 화면이 아니라 통화로 준다 — 사람이 사진을 보고 말해주는 게 자동 텍스트보다
+         강한 보상이고, 그 통화가 곧 상담(클로징) 지점이기도 하다. -->
+    <div id="consult">
+      <div class="sectlabel">진단 해석</div>
+      <h2>점수의 이유는, 사람이 봐야 보입니다</h2>
+      <div id="consultForm">
+        <p class="cintro">지금 쓰는 소개용 사진과 기본 정보를 남기시면, 전문가가 직접 보고 <b>통화로 해석</b>해 드립니다. 순차적으로 연락드립니다.</p>
+        <div class="crow">
+          <div class="field"><label>나이</label>
+            <select id="cAge">
+              <option value="">선택</option>
+              <option>20대 후반</option><option>30대 초반</option><option>30대 중반</option>
+              <option>30대 후반</option><option>40대 초반</option><option>40대 중반</option>
+              <option>45세 이상</option>
+            </select></div>
+          <div class="field"><label>키</label>
+            <select id="cHeight">
+              <option value="">선택</option>
+              <option>165cm 미만</option><option>165~169cm</option><option>170~174cm</option>
+              <option>175~179cm</option><option>180cm 이상</option>
+            </select></div>
+        </div>
+        <div class="field photofield">
+          <label>소개용 사진 <span class="optb">선택</span></label>
+          <input type="file" id="cPhoto" accept="image/*,.zip,application/zip,application/x-zip-compressed" multiple>
+          <div class="micro">사진 요청시에 사용하는 내 사진을 첨부해주세요(선택사항, 최대8MB)</div>
+          <div class="ferr" id="cPhotoErr">파일이 너무 큽니다. 8MB 이하로 올려주세요.</div>
+          <div class="picked" id="cPhotoPicked"></div>
+        </div>
+        <label class="consent" id="cAgreeWrap"><input type="checkbox" id="cAgree"><span><span class="req">[필수]</span> 진단 해석을 위한 사진·나이·키 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a></span></label>
+        <div class="ferr" id="cAgreeErr">개인정보 수집·이용에 동의해 주세요.</div>
+        <button class="cta block consultcta" id="consultSubmit" onclick="requestConsult()">진단 해석 신청 (통화 5분)</button>
+      </div>
+      <div id="consultDone" class="hidden">
+        <div class="cdone">✅ 접수됐습니다. 순차적으로 연락드립니다.</div>
+        <a class="cta block" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">50% 쿠폰으로 쇼룸 예약하기 →</a>
+      </div>
+    </div>
+
     <!-- 위협형 금액 프레임 블록 제거 (offers 스킬 가이드) -->
     <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="lanes">
       <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
-      <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-02.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+      <!-- lane-02 는 결과 최상단 히어로와 같은 사진이라 한 화면에 두 번 나온다 → 다른 사진을 쓴다. -->
+      <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-rel.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+    </div>
+
+    <!-- 증거: 가격보다 앞, 결과보다 뒤 (CLAUDE.md §3) -->
+    <div class="baFeature topproof">
+      <div class="eh">분위기가 준비된 남자에게는,<br>기회도 찾아옵니다.</div>
+      <div class="pair">
+        <figure><figcaption>Before</figcaption><img src="images/img-06.jpg" alt="디렉팅 전"></figure>
+        <figure><figcaption>After</figcaption><img src="images/img-07.jpg" alt="디렉팅 후"></figure>
+      </div>
+      <div class="cap">"전문 사진을 찍어도 아저씨 같은 느낌이 있었는데, 입사 동기들이 저만 회춘한 것 같다고 뭐가 달라진 거냐 하네요."</div>
+      <div class="by">— IT 대기업 · 30대 · 디렉팅 후 셀프 스타일링&nbsp;</div>
     </div>
 
     <!-- 투자 리프레임 -->
     <div class="invest">
-      <div class="k">진단이 끝났습니다. 이제 중요한 건 이겁니다</div>
-      <p>첫인상은 소개·데이트마다 가장 먼저 읽히는 <b>자산</b>입니다. 진단이 찾은 <b>인상 격차</b>는, 이미 가진 조건이 아직 첫인상으로 다 표현되지 않았다는 겁니다. 그래서 이미지 관리는 '비용'이 아니라 <b>한 번 만들어 평생 쓰는 투자</b>입니다 — 얻은 기준과 사진은 그대로 남으니까요.</p>
+      <p>첫 인상, 이미 가진 조건을 전달하기 위한 <b>한 번 만들어 평생 쓰는 투자</b>입니다.</p>
     </div>
 
     <!-- 원데이플랜 단일 오퍼 -->
@@ -227,18 +328,14 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <p class="proofcap">" 덕분에, 남자들을 압도하는 인상을 얻었습니다. "</p>
     <div class="proofstory"><span class="pw">벤처기업 대표 · 30대</span><span class="ps-line"><b class="ps-bl">Before</b>결혼정보회사에 등록해두고 옷은 명품 브랜드만 사모았는데, 업체측에서 여성분들이 제가 좀 더 꾸몄으면 좋겠다고 말했대요. 아, 뭘 어디서부터 해야 할지 답답했어요.</span><span class="ps-line"><b class="ps-al">After</b>인상 디렉팅 이후, 소개팅에서도 훨씬 편해졌고 분위기가 달라졌다는 말을 자주 들어요. 인상에 대한 고민이 사라지니 사람 만나는 자리 자체가 편해졌습니다. ㅎㅎ</span></div>
     <div id="preoffer">
-    <div class="sectlabel">원데이플랜, 하루면 끝납니다.</div>
-    <h2>말로 하는 조언이 아니라, 직접 입어보는 하루입니다</h2>
+    <!-- 구성·절차 상세는 예약 페이지가 전부 갖고 있다(체형·헤어·피부 진단, 스타일링,
+         셀렉션 피팅, 촬영, 개별가 820,000 → 350,000). 여기서 반복하지 않는다. -->
     <div class="hallbanner">
       <img src="images/img-02.jpg" alt="리얼미 쇼룸 복도">
       <div class="grad"></div>
       <div class="cap"><div class="k">REALME SHOWROOM</div><h3>한 공간에서<br>사진 까지.&nbsp;</h3><p>잠실 1:1 프라이빗 라운지</p></div>
     </div>
-    <div class="steps">
-      <div class="stepc"><div class="n">1</div><b>인상 격차 정밀 진단</b><p>실제 내 첫인상이 어떻게 읽히는지, 얼굴형·체형·헤어 조합을 객관적으로 확인</p></div>
-      <div class="stepc"><div class="n">2</div><b>1:1 착장 디렉팅</b><p>내 인상을 살리는 색·핏을 직접 입어보며 익혀 스타일 방향 기준 확보</p></div>
-      <div class="stepc"><div class="n">3</div><b>자연스러운 사진 촬영</b><p>바뀐 인상을 자연스러운 3~5컷으로 남겨 SNS·프로필에 바로 업데이트</p></div>
-    </div>
+    <div class="flowline">90분 안에 <b>진단 → 착장 디렉팅 → 촬영</b>까지 한 자리에서 끝냅니다.</div>
 
     <div class="sectlabel">인상 격차가 맞춰진 남성들은 ?</div>
     <h2>스펙은 그대로. 첫인상만 바뀌었습니다</h2>
@@ -252,11 +349,13 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <div class="locked" id="lockBox">
       <div class="head"><b>🔑 원데이플랜 · 1:1 프라이빗 라운지 (90분)</b><span class="anchor">개별가 합계 ₩820,000 · 정가 <s>₩700,000</s> → 진단자 <em>₩350,000</em></span></div>
       <div class="body">
+        <!-- 항목 설명은 예약 페이지에 있다. 여기서는 앵커(개별가 합계)를 세우는 데 필요한
+             항목명과 금액만 남긴다 — 이 낙차가 결정 장벽을 낮추는 장치다(CLAUDE.md §5). -->
         <ul class="stack">
-          <li><span class="t">인상 격차 정밀 진단 (파인딩플랜 포함)</span><span class="v">₩150,000 상당</span></li>
-          <li class="bonus"><span class="t"><span><b>연애·이성 관계 전략 상담</b> — 소개 자리에서의 인상과 태도 방향을 함께 정리합니다</span></span><span class="v">₩120,000 → 무료</span></li>
-          <li><span class="t">1:1 착장 디렉팅 (내게 맞는 색·핏, 혼자서도 재현)</span><span class="v">₩300,000 상당</span></li>
-          <li><span class="t">자연스러운 최신 사진 3~5컷 (SNS·프로필에 바로 사용)</span><span class="v">₩250,000 상당</span></li>
+          <li><span class="t">인상 격차 정밀 진단</span><span class="v">₩150,000 상당</span></li>
+          <li class="bonus"><span class="t"><span><b>연애·이성 관계 전략 상담</b></span></span><span class="v">₩120,000 → 무료</span></li>
+          <li><span class="t">1:1 착장 디렉팅</span><span class="v">₩300,000 상당</span></li>
+          <li><span class="t">자연스러운 최신 사진 3~5컷</span><span class="v">₩250,000 상당</span></li>
         </ul>
         <div class="roi">한 번의 디렉팅으로 얻는 기준과 사진은 <b>평생 다시 씁니다</b>&nbsp;</div>
         <div class="guarantee">🛡 방문 상담 후 불만족 시 <b>예약금 전액 환불</b> · 부담은 예약금뿐입니다</div>
@@ -265,23 +364,19 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
           <div class="cbody"><b>쇼룸 첫 방문 할인쿠폰</b><div class="cprice">정가 <s>₩700,000</s> → <em>₩350,000</em> <b class="coff">50% · ₩350,000 할인</b><br>예약금 ₩20,000은 방문 시 결제액에서 차감</div></div>
           <div class="cexp">1:1 프라이빗 세션이라 주말 예약 가능 인원이 많지 않습니다.</div>
         </div>
-        <div class="field"><label>할인쿠폰 받을 연락처</label><input id="fPhone" placeholder="010-0000-0000" inputmode="tel"></div>
-        <div class="ferr" id="phoneErr">연락처를 정확히 입력해 주세요.</div>
-        <label class="consent" id="agreeWrap"><input type="checkbox" id="fAgree"><span><span class="req">[필수]</span> 개인정보 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a> <span style="opacity:.75">(쇼룸 예약 안내 목적 · 언제든 삭제 가능)</span></span></label>
-        <div class="ferr" id="agreeErr">개인정보 수집·이용에 동의해 주세요.</div>
-        <button class="cta block" id="submitBtn" onclick="issueCoupon()">쇼룸 예약을 위한 할인쿠폰 발급받기</button>
-        <div class="micro" style="text-align:center">입력하신 번호는 쿠폰 발송·예약 안내에만 사용됩니다</div>
         <div class="risk"><span>✅ 진단자 <b>전용가</b></span><span>✅ 방문 후 불만족 시 <b>환불</b></span><span>✅ <b>1:1 프라이빗</b></span></div>
         <div class="proof">👤 진단을 마치신 분께만 쿠폰이 발급됩니다</div>
         <div class="downsell">실력은 이미 증명하셨습니다. 남은 건 첫인상 하나입니다.</div>
       </div>
     </div>
 
-    <div id="couponBox" class="hidden">
-      <div class="money" style="border-style:solid;border-color:var(--good)"><div class="l" style="color:var(--good)">할인쿠폰 발급 완료</div><div class="v" style="color:#cfe6fb;font-size:22px">쇼룸 첫 방문 할인쿠폰</div><p>쿠폰코드 <b id="couponCode" style="color:#fff">—</b><br>할인쿠폰이 발급되었습니다. 아래에서 바로 쇼룸 예약을 완료하세요.</p></div>
-      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">할인쿠폰으로 쇼룸 예약하기 →</a>
-      <button class="cta block secondary" style="margin-top:10px" onclick="share(this)">주변 전문직 지인에게 진단 추천하기</button>
-      
+    <!-- 게이트에서 이미 발급된 쿠폰을 여기서 처음 보여준다(스펙 §7.1).
+         게이트에서 쿠폰을 꺼내면 보상이 "결과"와 "쿠폰"으로 쪼개져 둘 다 약해진다. -->
+    <!-- 쿠폰 코드는 화면에 노출하지 않는다. 결제 링크에 실려 자동으로 넘어간다.
+         (코드 표시용 #couponCode 는 제거했고, 이를 참조하는 쪽은 모두 존재 여부를 확인한다) -->
+    <div id="couponBox">
+      <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">50% 쿠폰으로 쇼룸 예약하기 →</a>
+      <div class="micro" style="text-align:center">예약금 ₩20,000 · 방문 후 불만족 시 전액 환불</div>
     </div>
   </div>
 
@@ -324,9 +419,9 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
 <script>
 /* ---- A/B 후크: 소득·능력 vs 연애 (진단명 '인상 격차'는 고정) ---- */
 const V={
-  career:{k:"연 소득 1억 이상, 실력은 이미 증명한 남자만 해보세요",
+  career:{k:"연봉은 1억이상, 소개 자리에서만 안 통하는 남자만 보세요.",
     h:'실력은 <span class="hl">상위권</span> 인데,<br>당신의 <span class="hl">첫 인상</span>도 그럴까요?',
-    s:"당신의 연봉이 실력에 못 미치는 이유.",
+    s:"연애 고민에 쓰던 에너지를, 일에 다 쓰게 해드립니다.",
     cta:"내 인상 격차 확인하기"},
   dating:{k:"인상 격차 진단 · 3분 무료",
     h:'실력은 <span class="hl">상위권</span> 인데,<br>당신의 <span class="hl">첫 인상</span>도 그럴까요?',
@@ -343,14 +438,14 @@ function paintHero(){const x=V[variant];
 
 /* ---- 문항 ---- */
 const QUESTIONS=[
-  {axis:'intent',q:"먼저 — 어떤 자리에서 첫인상 덕을 제일 보고 싶으세요?",o:[{t:"일 — 미팅·협상·승진에서 더 인정받고 싶다",v:'career'},{t:"관계 — 소개·데이트에서 제대로 통하고 싶다",v:'rel'},{t:"둘 다 — 전반적인 인상을 끌어올리고 싶다",v:'both'}]},
+  {axis:'intent',q:"먼저 하나만요. 요즘 어느 쪽이 더 아쉬우세요?",o:[{t:"일 — 회의실·협상에서 더 인정받고 싶다",v:'career'},{t:"관계 — 소개 자리·데이트에서 제대로 통하고 싶다",v:'rel'},{t:"둘 다 — 전반적인 인상을 끌어올리고 싶다",v:'both'}]},
   {axis:'status',key:'job',q:"지금 하고 계신 일에 가장 가까운 건?",o:[{t:"의사·변호사·회계사 등 전문직",p:10},{t:"기업 대표 / 사업체 운영",p:9},{t:"대기업 임원·고위 직급",p:9},{t:"대기업·전문 조직 재직",p:7},{t:"그 외 · 준비 중",p:5}]},
   {axis:'status',key:'income',q:"연 소득은 어느 구간에 가까우세요?",help:"구간만 고르시면 됩니다. 진단 결과 계산에 사용됩니다.",o:[{t:"3억 원 이상",p:10,mid:400000000},{t:"1.5억 ~ 3억 원",p:9,mid:225000000},{t:"1억 ~ 1.5억 원",p:7,mid:125000000},{t:"7천만 ~ 1억 원",p:5,mid:85000000},{t:"7천만 원 미만",p:3,mid:55000000}]},
   {axis:'status',key:'edu',q:"학력이나 커리어, 객관적으로 보면 어느 정도세요?",help:"정답은 없어요. 솔직할수록 결과가 정확해집니다.",o:[{t:"확실히 내세울 만하다 — 학벌·경력 중 강한 카드가 있다",p:10},{t:"평균보다는 위다 — 어디서도 밀리지 않는다",p:7},{t:"평범한 편이다 — 특별히 앞서진 않는다",p:4}]},
-  {axis:'image',q:"옷이나 스타일, 평소에 얼마나 챙기세요?",o:[{t:"전문가 도움을 받거나 체계적으로 관리한다",p:10},{t:"나름 신경 써서 챙기는 편",p:7},{t:"기본은 하는데, 이게 맞나 싶다",p:4},{t:"솔직히 거기까지 신경 쓸 여유가 없었다",p:1}]},
+  {axis:'image',q:"옷은 평소에 어떻게 고르세요?",o:[{t:"전문가 도움을 받거나 체계적으로 관리한다",p:10},{t:"나름 신경 써서 챙기는 편",p:7},{t:"기본은 하는데, 이게 맞나 싶다",p:4},{t:"일이 우선이라 거기까지는 못 챙겼다",p:1}]},
   {axis:'image',q:"헤어·피부·체형 관리는 어떻게 하고 계세요?",o:[{t:"내게 뭐가 필요한지 알고, 꾸준히 관리한다",p:10},{t:"헤어샵·피부과를 꾸준히 다니며 챙긴다",p:8},{t:"필요하다 싶을 때, 필요한 시술을 받는다",p:6},{t:"생각날 때 가끔 직접 관리한다",p:4},{t:"거의 손을 못 대고 있다",p:2}]},
-  {axis:'image',q:"지금 나를 제대로 보여줄 최근 사진, 있으세요?",o:[{t:"전문 촬영한 사진이 있다",p:10},{t:"쓸 만한 게 몇 장 있다",p:6},{t:"셀카나 일상 사진뿐이다",p:3},{t:"쓸 만한 게 거의 없다",p:1}]},
-  {axis:'image',q:"중요한 자리(미팅·소개팅)에서 첫인상, 스스로 어떠세요?",o:[{t:"자신 있다",p:10},{t:"보통이다",p:6},{t:"조금 어색할 때가 있다",p:3},{t:"솔직히 부담스럽다",p:1}]},
+  {axis:'image',q:"소개받을 때 보낼 만한 사진, 지금 있으세요?",o:[{t:"전문 촬영한 사진이 있다",p:10},{t:"쓸 만한 게 몇 장 있다",p:6},{t:"셀카나 일상 사진뿐이다",p:3},{t:"쓸 만한 게 거의 없다",p:1}]},
+  {axis:'image',q:"처음 만나는 자리에서 내 첫인상, 스스로 어떻다고 보세요?",o:[{t:"자신 있다",p:10},{t:"보통이다",p:6},{t:"조금 어색할 때가 있다",p:3},{t:"솔직히 부담스럽다",p:1}]},
   {axis:'image',q:'"능력·지위에 비해 스타일이 좀 아쉽다" — 이런 말, 들어본 적 있으세요?',o:[{t:"오히려 스타일 칭찬을 듣는다",p:10},{t:"들어본 적 없다",p:8},{t:"가끔 듣는다",p:4},{t:"종종 듣는다",p:1}]}
 ];
 let idx=0, incomeMid=125000000;
@@ -393,58 +488,108 @@ function laneHot(intent){
   return { career: intent==='career'||intent==='both', rel: true };
 }
 function persona(st,im){const hiS=st>=70,hiI=im>=65;
-  if(hiS&&!hiI)return{name:"숨은 원석형",v:"실력·지위는 이미 최상위권. 그 값을 첫인상에서 다 받아낼 표현만 아직 비어 있습니다.",p:"원데이플랜의 착장 디렉팅이 가장 큰 레버입니다."};
-  if(hiS&&hiI)return{name:"완성형",v:"실력과 인상 모두 상위권. 이제 그 인상을 '제대로 남길' 차례입니다.",p:"원데이플랜의 촬영·미세 조정으로 마무리하시길 추천드립니다."};
-  if(!hiS&&!hiI)return{name:"재정비형",v:"기반을 더 살리고 표현 전략을 전면 재정비하면 체감 인상이 크게 달라집니다.",p:"원데이플랜에서 디렉팅과 촬영을 함께 잡는 것을 추천드립니다."};
-  return{name:"성장형",v:"기반은 탄탄합니다. 결정적 몇 가지만 잡으면 한 단계 도약합니다.",p:"원데이플랜의 핵심 포인트 집중 디렉팅을 추천드립니다."};}
+  if(hiS&&!hiI)return{name:"숨은 원석형",v:"실력·지위는 이미 최상위권입니다. 그 값을 첫인상에서 다 받아낼 표현만 아직 비어 있습니다.",p:"원데이플랜의 착장 디렉팅이 가장 큰 레버입니다."};
+  if(hiS&&hiI)return{name:"완성형",v:"실력도 인상도 상위권입니다. 이제 그 인상을 제대로 남길 차례입니다.",p:"원데이플랜의 촬영·미세 조정으로 마무리하시길 추천드립니다."};
+  if(!hiS&&!hiI)return{name:"재정비형",v:"지금은 기준이 없어서 손해를 보고 있는 상태입니다. 뒤집어 말하면, 기준만 잡히면 변화가 가장 크게 보이는 유형입니다.",p:"원데이플랜에서 디렉팅과 촬영을 함께 잡는 것을 추천드립니다."};
+  return{name:"성장형",v:"기반은 탄탄합니다. 결정적인 몇 가지만 잡으면 한 단계 올라섭니다.",p:"원데이플랜의 핵심 포인트 집중 디렉팅을 추천드립니다."};}
 function fmtWon(w){w=Math.round(w/1e6)*1e6;const man=Math.round(w/1e4);
   if(man>=10000){const e=Math.floor(man/10000),r=man%10000;return '약 '+e+'억'+(r?' '+r.toLocaleString()+'만':'')+' 원';}
   return '약 '+man.toLocaleString()+'만 원';}
-function finish(){
+/* ===== 연락처 게이트 =====
+   퀴즈 완료 → 게이트(번호) → 결과. 번호를 낸 사람만 결과를 본다.
+   통과 이력을 localStorage 에 남기는 이유: 같은 번호를 다시 제출하면 시트가 DUP 로
+   조용히 거절해 리드가 유실되고(비콘이라 클라이언트는 성공으로 보인다), 무엇보다
+   이미 번호를 낸 사람에게 또 요구하면 흐름이 끊긴다. */
+var GATE_KEY='realme_gate_v1';
+function gatePassed(){
+  try{ var v=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); return !!(v&&v.code); }
+  catch(e){ return false; }
+}
+function markGatePassed(code,phone){
+  try{ localStorage.setItem(GATE_KEY, JSON.stringify({code:code, phone:phone||'', at:Date.now()})); }catch(e){}
+}
+
+// 점수·페르소나 계산만 한다. DOM 을 건드리지 않는다 — 게이트와 결과가 같은 값을 쓰기 때문이다.
+function computeScores(){
+  var s=scores(), intent=intentVal(), p=persona(s.st,s.im);
+  return {st:s.st, im:s.im, intent:intent, p:p, rank:Math.max(1,Math.round((100-s.st)*0.8)+1)};
+}
+
+function showGate(){
+  var c=computeScores();
   document.getElementById('pbar').style.width='100%';
-  const {st,im}=scores(),intent=intentVal(),p=persona(st,im);
-  const rank=Math.max(1,Math.round((100-st)*0.8)+1);
-  trk('quiz_complete',{score:im,status:st,intent:intent,persona:p.name||''});
+  trk('quiz_complete',{score:c.im,status:c.st,intent:c.intent,persona:c.p.name||''});
+  vpv('/premium/gate','프리미엄 진단 - 연락처');
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  var g=document.getElementById('gate'); g.classList.remove('hidden'); g.classList.add('fadein');
+  document.getElementById('gateScore').textContent=c.im;
+  try{if(window.nav)window.nav('gate');if(window.saveState)window.saveState();}catch(e){}
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+function renderResult(){
+  var c=computeScores();
   vpv('/premium/result','프리미엄 진단 - 결과');
   document.getElementById('quiz').classList.add('hidden');
-  const R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
-  document.getElementById('typeName').textContent='「'+p.name+'」';
-  document.getElementById('verdict').textContent=p.v;
-  document.getElementById('statusVal').textContent='상위 '+rank+'%';
-  document.getElementById('imageVal').textContent=im+' / 100';
-  var lh=laneHot(intent);
+  document.getElementById('gate').classList.add('hidden');
+  var R=document.getElementById('result');R.classList.remove('hidden');R.classList.add('fadein');
+  document.getElementById('typeName').textContent='「'+c.p.name+'」';
+  document.getElementById('verdict').textContent=c.p.v;
+  document.getElementById('statusVal').textContent='상위 '+c.rank+'%';
+  document.getElementById('imageVal').textContent=c.im+' / 100';
+  var lh=laneHot(c.intent);
   document.getElementById('laneCareer').classList.toggle('hot',lh.career);
   document.getElementById('laneRel').classList.toggle('hot',lh.rel);
-  setTimeout(()=>{document.getElementById('iciNum').textContent=im;
-    document.getElementById('statusFill').style.width=st+'%';
-    document.getElementById('imageFill').style.width=im+'%';},120);
+  setTimeout(()=>{document.getElementById('iciNum').textContent=c.im;
+    document.getElementById('statusFill').style.width=c.st+'%';
+    document.getElementById('imageFill').style.width=c.im+'%';},120);
+  // 새로고침·재방문 복원: 쿠폰 코드와 결제 링크는 저장소에서 되살린다.
+  // (이게 없으면 재방문자의 결제 링크에 coupon·phone 이 빠진다)
+  try{
+    var g=JSON.parse(localStorage.getItem(GATE_KEY)||'null');
+    if(g&&g.code)window.__coupon=g.code;
+  }catch(e){}
+  syncCheckoutLinks();
   try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
-function toForm(){trk('sticky_cta_click',{target:'coupon_form'});document.getElementById('lockBox').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fPhone').focus({preventScroll:true});}
+
+// 퀴즈 마지막 문항 다음의 진입점. 이미 번호를 낸 사람은 게이트를 건너뛴다.
+function finish(){ if(gatePassed()) renderResult(); else showGate(); }
+// 게이트 도입 후 남은 행동은 예약뿐이다 — 스티키 CTA 는 결제 CTA 로 데려간다(스펙 결정 13).
+function toForm(){trk('sticky_cta_click',{target:'checkout'});var t=document.getElementById('couponBox')||document.getElementById('lockBox');if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
 // 쿠폰 발급 시 숨기고 재진단 시 되살리는 섹션 목록.
-// issueCoupon() 과 restart() 가 반드시 같은 목록을 봐야 한다.
+// submitGate() 과 restart() 가 반드시 같은 목록을 봐야 한다.
 // (과거 #persuade 누락으로 재진단 시 사례·FAQ가 사라지는 버그가 있었다 — CLAUDE.md §9)
 // 섹션을 추가·삭제할 때는 이 배열만 고친다.
-window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
-function issueCoupon(){
-  const btn=document.getElementById('submitBtn');
-  const ph=document.getElementById('fPhone'), pe=document.getElementById('phoneErr'), ae=document.getElementById('agreeErr');
+window.REVEAL_ON_RESTART=['#preoffer','#lockBox','#persuade','#consult','#resultTop','#couponBox','.bridge','.invest','.proofshot','.proofcap','.proofstory'];
+/* 게이트 제출 = 리드 확보 + 쿠폰 발급 + 결과 공개.
+   여기서 결제 페이지로 보내지 않는다 — 번호를 낸 이유가 "결과를 보려고"이기 때문이다.
+   결제는 결과를 다 보고 본인이 눌러서 간다(그래서 trkCTA 도 여기서 쏘지 않는다). */
+function submitGate(){
+  const btn=document.getElementById('gateSubmit');
+  const ph=document.getElementById('gPhone'), pe=document.getElementById('gPhoneErr'), ae=document.getElementById('gAgreeErr');
   ph.classList.remove('err'); if(pe)pe.style.display='none'; if(ae)ae.style.display='none';
   if(ph.value.replace(/\D/g,'').length<9){ph.classList.add('err'); if(pe)pe.style.display='block'; ph.focus(); trk('form_error',{field:'phone'}); return;}
-  const ag=document.getElementById('fAgree'), aw=document.getElementById('agreeWrap'); aw.classList.remove('err');
+  const ag=document.getElementById('gAgree'), aw=document.getElementById('gAgreeWrap'); aw.classList.remove('err');
   if(!ag.checked){aw.classList.add('err'); if(ae)ae.style.display='block'; trk('form_error',{field:'agree'}); return;}
   if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
+  const phone=ph.value.replace(/\D/g,'');
   const code='REALME-'+Math.floor(1000+Math.random()*9000);
-  document.getElementById('couponCode').textContent=code;
-  const cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(code,ph.value.replace(/\D/g,''));
+  window.__coupon=code;
+  markGatePassed(code,phone);
+  const cc=document.getElementById('couponCode'); if(cc)cc.textContent=code;
+  syncCheckoutLinks();
 
   // 구글시트 프리미엄 탭 적재 (전화번호는 여기서만 남고 GA4로는 절대 보내지 않음)
   try{
     const q=window.inboundParams?window.inboundParams():{};
     const s=scores(), r=statusRaw();
     sendLead({
-      phone:        ph.value.replace(/\D/g,''),
+      path:         'gate',
+      phone:        phone,
+      coupon:       code,
       score:        s.im,
       status_score: s.st,
       job_p:        r.job_p,
@@ -469,36 +614,182 @@ function issueCoupon(){
   // r 은 위 sendLead 블록의 r 과 별개다 — 그 블록의 try 스코프 밖이라 여기서 다시 계산한다.
   try{
     const r=statusRaw();
-    if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',coupon:code,
+    // path 로 게이트 리드와 옛 데이터를 구분한다 — generate_lead 의 의미가
+    // "예약 의향"에서 "결과 열람"으로 바뀌었기 때문이다. 섞어서 해석하면 안 된다.
+    if(window.gtag)gtag('event','generate_lead',{landing:'premium',page_group:'premium_quiz',path:'gate',coupon:code,
       ql:r.ql,job_p:r.job_p,income_p:r.income_p});
     if(window.fbq){
-      fbq('track','CompleteRegistration',{content_name:'premium_coupon',
+      fbq('track','CompleteRegistration',{content_name:'premium_gate',
         value:(r.income_mid||0),currency:'KRW',ql:r.ql});
       if(r.ql!=='NQ')fbq('trackCustom','QualifiedLead',{ql:r.ql,value:(r.income_mid||0),currency:'KRW'});
     }
   }catch(e){}
-  vpv('/premium/coupon','프리미엄 진단 - 쿠폰 발급');
-  // 쿠폰 발급 완료 화면을 거치지 않고 곧장 예약금 결제로 보낸다.
-  // - 결제 CTA 클릭 이벤트는 사용자가 더 이상 그 버튼을 누르지 않으므로 여기서 대신 쏜다.
-  // - sendLead 1차 경로는 sendBeacon 이라 이탈해도 전송되지만, 비콘이 막힌 브라우저에서는
-  //   fetch 폴백과 gtag/fbq 전송이 아직 진행 중일 수 있어 짧게 유예를 두고 이동한다.
-  // - 결과 화면 섹션을 숨기지 않는다: 결제창에서 뒤로가기로 돌아왔을 때(bfcache 복원 포함)
-  //   빈 페이지가 아니라 정상 결과 화면이 보여야 한다.
-  try{ trkCTA(); }catch(e){}
-  const dest=checkoutURL(code,ph.value.replace(/\D/g,''));
-  if(btn){btn.textContent='예약 페이지로 이동 중…';}
   try{ if(window.saveState)window.saveState(); }catch(e){}
-  setTimeout(function(){ window.location.href=dest; },700);
+  // 결과 화면 섹션을 숨기지 않는다: 결제창에서 뒤로가기로 돌아왔을 때(bfcache 복원 포함)
+  // 빈 페이지가 아니라 정상 결과 화면이 보여야 한다.
+  renderResult();
+}
+
+/* ===== 해석용 파일 첨부 (선택) =====
+   이미지는 canvas 로 줄여 보내고, zip 은 줄일 수 없으므로 원본 그대로 보낸다.
+   전송은 sendLead(비콘) 가 아니라 fetch 다 — 비콘은 용량 한계가 있어 파일이 못 나간다. */
+function isZip(f){
+  var n=(f.name||'').toLowerCase();
+  return n.slice(-4)==='.zip' || (f.type||'').indexOf('zip')>-1;
+}
+function fileToDataURL(file){
+  return new Promise(function(resolve){
+    try{ var r=new FileReader();
+      r.onload=function(){ resolve(r.result); };
+      r.onerror=function(){ resolve(null); };
+      r.readAsDataURL(file);
+    }catch(e){ resolve(null); }
+  });
+}
+// 긴 변 1280px · JPEG 0.72. 원본을 그대로 보내면 Apps Script 본문 크기에서 막힌다.
+function resizeImage(file,maxEdge,quality){
+  return new Promise(function(resolve){
+    try{
+      var draw=function(src,w,h){
+        var s=Math.min(1,maxEdge/Math.max(w,h));
+        var c=document.createElement('canvas'); c.width=Math.round(w*s); c.height=Math.round(h*s);
+        c.getContext('2d').drawImage(src,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      if(window.createImageBitmap){
+        createImageBitmap(file,{imageOrientation:'from-image'})
+          .then(function(b){ draw(b,b.width,b.height); })
+          .catch(function(){ resolve(null); });
+      }else{
+        var img=new Image(), u=URL.createObjectURL(file);
+        img.onload=function(){ draw(img,img.naturalWidth,img.naturalHeight); URL.revokeObjectURL(u); };
+        img.onerror=function(){ resolve(null); URL.revokeObjectURL(u); };
+        img.src=u;
+      }
+    }catch(e){ resolve(null); }
+  });
+}
+// 실패·지연이 접수를 막지 않는다: 6초 안에 안 끝나면 그냥 넘어간다.
+function uploadFiles(files,phone){
+  var cfg=window.REALME_CONFIG||{};
+  if(!cfg.PHOTO_UPLOAD||!cfg.LEAD_ENDPOINT||!files||!files.length)return Promise.resolve(false);
+  // 리드와 같은 이유로 로컬에서는 파일도 올리지 않는다.
+  if(window.__isLocal&&window.__isLocal()){ try{console.info('[REALME] 로컬이라 첨부 전송을 건너뜁니다');}catch(e){} return Promise.resolve(false); }
+  var jobs=Array.prototype.slice.call(files,0,5).map(function(f){
+    return (isZip(f)?fileToDataURL(f):resizeImage(f,1280,0.72)).then(function(data){
+      if(!data)return false;
+      // mode:'no-cors' — Apps Script /exec 응답에는 CORS 헤더가 없어서, 기본 모드로 보내면
+      // 서버가 정상 처리했는데도 응답을 읽지 못해 fetch 가 reject 된다(실패로 오기록된다).
+      // 대신 응답 내용도 못 읽으므로, 적재 확인은 드라이브 폴더로 해야 한다.
+      return fetch(cfg.LEAD_ENDPOINT,{method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({type:'photo',phone:phone,filename:f.name,kind:isZip(f)?'zip':'image',data:data})
+      }).then(function(){return true;}).catch(function(){return false;});
+    });
+  });
+  var timeout=new Promise(function(r){ setTimeout(function(){ r(false); },6000); });
+  return Promise.race([Promise.all(jobs).then(function(a){return a.some(Boolean);}),timeout]).catch(function(){return false;});
+}
+
+// 첨부 파일 표시 + 용량 검사. 넘치면 조용히 버리지 않고 그 자리에서 알려준다.
+(function(){
+  var pf=document.getElementById('cPhoto'); if(!pf)return;
+  pf.addEventListener('change',function(){
+    var max=((window.REALME_CONFIG||{}).PHOTO_MAX_MB||8)*1024*1024;
+    var err=document.getElementById('cPhotoErr'), out=document.getElementById('cPhotoPicked');
+    var total=0, names=[];
+    for(var i=0;i<pf.files.length;i++){ total+=pf.files[i].size; names.push(pf.files[i].name); }
+    if(total>max){ if(err)err.style.display='block'; pf.value=''; if(out)out.textContent=''; return; }
+    if(err)err.style.display='none';
+    if(out)out.textContent=names.length?('첨부됨 · '+names.join(' , ')):'';
+  });
+})();
+
+/* 진단 해석 신청. 번호는 게이트에서 이미 받았으므로 여기서는 나이·키만 받는다.
+   type:'update' 로 보내는 이유: 같은 번호로 새 행을 만들면 시트가 DUP 로 조용히 거절해
+   이 사람이 해석까지 신청했다는 기록이 남지 않는다(비콘이라 클라이언트는 성공으로 보인다). */
+function requestConsult(){
+  const btn=document.getElementById('consultSubmit');
+  const ae=document.getElementById('cAgreeErr'), aw=document.getElementById('cAgreeWrap');
+  if(ae)ae.style.display='none'; if(aw)aw.classList.remove('err');
+  if(!document.getElementById('cAgree').checked){
+    if(aw)aw.classList.add('err'); if(ae)ae.style.display='block';
+    trk('form_error',{field:'consult_agree'}); return;
+  }
+  if(btn && btn.dataset.busy) return; if(btn){btn.dataset.busy='1'; btn.disabled=true; btn.style.opacity=.7;}
+
+  const age=document.getElementById('cAge').value||'';
+  const height=document.getElementById('cHeight').value||'';
+  window.__consultAge=age;
+
+  try{
+    var g=null; try{ g=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+    const r=statusRaw();
+    sendLead({
+      type:   'update',
+      path:   'consult',
+      phone:  (g&&g.phone)||'',
+      coupon: (g&&g.code)||window.__coupon||'',
+      age:    age,
+      height: height,
+      ql:     r.ql,
+      landing:'premium'
+    });
+  }catch(e){}
+
+  try{
+    const r=statusRaw(), c=computeScores();
+    if(window.gtag)gtag('event','consult_request',{landing:'premium',ql:r.ql,persona:c.p.name||'',age:age});
+  }catch(e){}
+  trk('consult_request',{age:age});
+
+  // 첨부는 선택이다. 실패해도 접수를 막지 않는다 — 파일이 없으면 통화 때 요청한다.
+  try{
+    const pf=document.getElementById('cPhoto');
+    if(pf&&pf.files&&pf.files.length){
+      var g2=null; try{ g2=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+      uploadFiles(pf.files,(g2&&g2.phone)||'').then(function(ok){
+        try{ if(window.gtag)gtag('event','consult_photo',{ok:!!ok,count:pf.files.length}); }catch(e){}
+      });
+    }
+  }catch(e){}
+
+  syncCheckoutLinks();   // 나이가 방금 확보됐으니 결제 링크에 age 를 싣는다
+  document.getElementById('consultForm').classList.add('hidden');
+  const d=document.getElementById('consultDone'); d.classList.remove('hidden');
+  d.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* 번호를 내지 않고 오퍼만 보러 가는 우회 경로(스펙 결정 27).
+   이 타깃은 개인정보 제출에 보수적이라, "번호는 안 내지만 돈은 낼 수 있는" 층을 버리지 않기
+   위한 문이다. 게이트는 통과시키지 않는다 — 결과·해석은 잠긴 상태로 두고 오퍼만 보여준다. */
+function bypassToOffer(){
+  trk('offer_bypass_click',{});
+  try{ if(window.gtag)gtag('event','offer_bypass_click',{landing:'premium'}); }catch(e){}
+  document.getElementById('gate').classList.add('hidden');
+  const R=document.getElementById('result');
+  R.classList.remove('hidden'); R.classList.add('bypass-mode');
+  // 쿠폰 없이 결제로 가므로 "50% 쿠폰으로" 라고 쓰면 그 문장이 거짓이 된다.
+  const cl=document.getElementById('checkoutLink');
+  if(cl){ cl.textContent='원데이플랜 쇼룸 예약하기 →'; cl.href='https://impact-me.real-me.co.kr/secret-checkout'; }
+  const t=document.querySelector('#result .bridge')||document.getElementById('lockBox');
+  if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  try{ if(window.nav)window.nav('result'); }catch(e){}
+  return false;
 }
 function restart(){
   trk('quiz_restart');
   try{for(var i=0;i<answers.length;i++)answers[i]=null;}catch(e){}
   idx=0;
   var byId=function(id){return document.getElementById(id);}, q=function(s){return document.querySelector(s);};
-  byId('result').classList.add('hidden');
-  var cb=byId('couponBox'); if(cb)cb.classList.add('hidden');
+  var R=byId('result'); R.classList.add('hidden'); R.classList.remove('bypass-mode');
+  byId('gate').classList.add('hidden');
   window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s); if(e)e.classList.remove('hidden');});
-  var sb=byId('submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+  var sb=byId('gateSubmit'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+  // 해석 섹션은 접수 화면이 아니라 폼 상태로 되돌린다.
+  var cf=byId('consultForm'); if(cf)cf.classList.remove('hidden');
+  var cd=byId('consultDone'); if(cd)cd.classList.add('hidden');
+  var cs=byId('consultSubmit'); if(cs){cs.disabled=false; cs.removeAttribute('data-busy'); cs.style.opacity='';}
   byId('landing').classList.add('hidden'); byId('quiz').classList.remove('hidden');
   render();
   try{if(window.nav)window.nav('quiz');if(window.saveState)window.saveState();}catch(e){}
@@ -507,7 +798,17 @@ function restart(){
 /* ===== 시크릿 예약페이지 이동 + 공유 ===== */
 // 쿠폰 CTA가 향하는 곳: 시크릿 예약(결제) 페이지로 직행
 // phone은 예약페이지가 입력칸에 자동으로 채운 뒤 URL에서 스스로 지웁니다(GA4·기록에 안 남음)
-function checkoutURL(code,phone){
+/* 결제 CTA 는 정적 href 라서, 값이 생기는 시점마다 다시 조립해줘야 한다.
+   호출 시점 셋: 게이트 통과 직후 · 결과 렌더(새로고침 복원) · 해석 신청(나이 확보). */
+function syncCheckoutLinks(){
+  var g=null; try{ g=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+  var code=(g&&g.code)||window.__coupon||'', phone=(g&&g.phone)||'';
+  var ql=''; try{ ql=statusRaw().ql; }catch(e){}
+  var url=checkoutURL(code,phone,ql,window.__consultAge||'');
+  var list=document.querySelectorAll('#checkoutLink, #consultDone a.cta');
+  for(var i=0;i<list.length;i++)list[i].href=url;
+}
+function checkoutURL(code,phone,ql,age){
   var q=window.inboundParams?window.inboundParams():{};
   var p=[];
   p.push('utm_source=premium');
@@ -517,42 +818,29 @@ function checkoutURL(code,phone){
   p.push('landing=premium');
   if(code)p.push('coupon='+encodeURIComponent(code));
   if(phone)p.push('phone='+encodeURIComponent(phone));
+  // 자격 경로. 예약 페이지가 ?ql=a|b 로 "조건표는 이미 통과하셨습니다" 화면을 켠다.
+  // NQ 에게는 그 문장이 거짓이 되므로 파라미터를 붙이지 않는다(예약 페이지 주석과 같은 이유).
+  if(ql==='QL-A')p.push('ql=a'); else if(ql==='QL-B')p.push('ql=b');
+  // 예약 페이지가 나이 입력칸을 자동으로 채운 뒤 URL 에서 스스로 지운다.
+  if(age)p.push('age='+encodeURIComponent(age));
   // 유입 광고 정보는 ad_* 로 따로 실어 보냄 (예약페이지가 utm_source로 유입경로를 판정하기 때문)
   for(var k in q)p.push('ad_'+k.replace('utm_','')+'='+encodeURIComponent(q[k]));
   return 'https://impact-me.real-me.co.kr/secret-checkout?'+p.join('&');
 }
 function trkCTA(){
-  var code=(document.getElementById('couponCode')||{}).textContent||'';
+  // 쿠폰 코드는 더 이상 화면에 없다. 발급 이력에서 읽는다.
+  var code=window.__coupon||'';
+  if(!code){ try{ var g=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); code=(g&&g.code)||''; }catch(e){} }
   trk('cta_coupon_click',{destination:'secret_checkout',coupon:code});
   try{if(window.fbq)fbq('track','Lead',{content_name:'premium_coupon_cta'});}catch(e){}
 }
-function share(btn){
-  var url='https://premium.real-me.co.kr/?utm_source=share&utm_medium=referral&utm_campaign=premium_gap';
-  var title='인상 격차 진단 · 3분 무료';
-  var text='같은 실력인데 첫인상에서 손해 보고 있진 않은지, 3분이면 나옵니다. 내 인상 점수 확인 →';
-  function done(method){
-    trk('share_success',{method:method});
-    var q=window.inboundParams?window.inboundParams():{};
-    sendLead({type:'share',method:method,utm_source:q.utm_source||''});   // 구글시트 프리미엄_공유 탭
-  }
-  function ok(){ if(btn){var o=btn.getAttribute('data-o')||btn.textContent; btn.setAttribute('data-o',o); btn.textContent='진단 링크가 복사되었습니다 ✓'; btn.disabled=true; setTimeout(function(){btn.textContent=o; btn.disabled=false;},2200);} }
-  function legacy(){ try{var ta=document.createElement('textarea'); ta.value=text+'\n'+url; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); done('clipboard_legacy'); }catch(e){ window.prompt('아래 진단 링크를 복사해 공유하세요', url); done('prompt'); } }
-
-  trk('share_click',{method:navigator.share?'native':'clipboard'});
-  if(navigator.share){
-    navigator.share({title:title, text:text, url:url})
-      .then(function(){done('native');})
-      .catch(function(){ trk('share_cancel',{method:'native'}); });
-    return;
-  }
-  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text+'\n'+url).then(function(){ok();done('clipboard');}).catch(legacy); }
-  else legacy();
-}
+/* share() 제거 (2026-08-31): 추천 버튼을 없애면서 호출부가 사라졌다.
+   구글시트 프리미엄_공유 탭으로 가던 type:'share' 리드도 함께 끊긴다. */
 paintHero();
 </script>
 
 
-<div id="stickyCTA" class=""><button class="cta block" onclick="toForm()">쇼룸 예약을 위한 할인쿠폰 발급받기</button></div>
+<div id="stickyCTA" class=""><button class="cta block" onclick="toForm()">50% 쿠폰으로 쇼룸 예약하기 →</button></div>
 
 
 
@@ -560,16 +848,21 @@ paintHero();
 (function(){
   var CK='realme_quiz_v1';
   var $=function(id){return document.getElementById(id);};
-  function screenNow(){ if(!$('result').classList.contains('hidden'))return 'result'; if(!$('quiz').classList.contains('hidden'))return 'quiz'; return 'landing'; }
+  function screenNow(){ if(!$('result').classList.contains('hidden'))return 'result'; if(!$('gate').classList.contains('hidden'))return 'gate'; if(!$('quiz').classList.contains('hidden'))return 'quiz'; return 'landing'; }
   window.saveState=function(){ try{ sessionStorage.setItem(CK, JSON.stringify({idx:idx, answers:answers, screen:screenNow()})); }catch(e){} };
   window.nav=function(screen,replace){ try{ history[replace?'replaceState':'pushState']({screen:screen,idx:idx},''); }catch(e){} };
-  function showLanding(){ $('result').classList.add('hidden'); $('quiz').classList.add('hidden'); $('landing').classList.remove('hidden'); }
-  function showQuiz(i){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden'); idx=Math.max(0,Math.min(QUESTIONS.length-1,i||0)); render(); }
-  window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} });
-  try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
+  function showLanding(){ $('result').classList.add('hidden'); $('gate').classList.add('hidden'); $('quiz').classList.add('hidden'); $('landing').classList.remove('hidden'); }
+  function showQuiz(i){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); $('gate').classList.add('hidden'); $('quiz').classList.remove('hidden'); idx=Math.max(0,Math.min(QUESTIONS.length-1,i||0)); render(); }
+  function showGateScreen(){ $('landing').classList.add('hidden'); $('result').classList.add('hidden'); try{showGate();}catch(e){} }
+  window.addEventListener('popstate',function(e){ var s=e.state; if(!s||s.screen==='landing'){showLanding();} else if(s.screen==='quiz'){showQuiz(s.idx);} else if(s.screen==='gate'){showGateScreen();} });
+  // 복원 규칙: 결과 화면이었더라도 발급 이력이 없으면 게이트로 되돌린다(우회 방지).
+  // finish() 가 gatePassed() 로 그 판단을 하므로 여기서는 finish() 만 부르면 된다.
+  try{ var raw=sessionStorage.getItem(CK); if(raw){ var d=JSON.parse(raw); if(d&&Array.isArray(d.answers)){ for(var k=0;k<answers.length;k++)answers[k]=(d.answers[k]===undefined?null:d.answers[k]); if(d.screen==='quiz'){ showQuiz(d.idx); history.replaceState({screen:'quiz',idx:idx},''); } else if(d.screen==='gate'||d.screen==='result'||d.screen==='coupon'){ $('landing').classList.add('hidden'); if(typeof finish==='function'){ try{finish();}catch(e){} } } } } }catch(e){}
   var sc=$('stickyCTA');
-  function updSticky(){ if(!sc)return; var res=$('result'), cb=$('couponBox'), lb=$('lockBox');
-    if(!res||res.classList.contains('hidden') || (cb&&!cb.classList.contains('hidden'))){ sc.classList.remove('show'); return; }
+  // 게이트 화면에서는 스티키를 숨긴다 — 거기서 할 행동은 번호 입력 하나뿐이다.
+  function updSticky(){ if(!sc)return; var res=$('result'), g=$('gate'), lb=$('couponBox');
+    if(g&&!g.classList.contains('hidden')){ sc.classList.remove('show'); return; }
+    if(!res||res.classList.contains('hidden')){ sc.classList.remove('show'); return; }
     var vis=false; if(lb){ var r=lb.getBoundingClientRect(); vis=(r.top<window.innerHeight-40 && r.bottom>60); }
     if(window.scrollY>300 && !vis){ sc.classList.add('show'); } else { sc.classList.remove('show'); }
   }
@@ -588,7 +881,7 @@ paintHero();
  var bar=document.getElementById('editbar'); if(!bar) return;
  try{ if(/[?&]edit=1|#edit/.test(location.href)) bar.style.display='flex'; }catch(e){}
  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); bar.style.display=(bar.style.display==='flex')?'none':'flex'; } });
- var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#submitBtn,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.stepc b,.stepc p,.stack li .t,.stack li .v,.consent>span,.micro";
+ var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.flowline,.gpq,.gpby,.stack li .t,.stack li .v,.consent>span,.micro";
  function setEd(on){document.querySelectorAll(SEL).forEach(function(el){el.contentEditable=on?'true':'false';});}
  function showEd(on){bar.querySelectorAll('.ed').forEach(function(b){b.classList.toggle('hidden',!on);});}
  function pick(cb){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){if(i.files[0])cb(i.files[0]);};i.click();}
@@ -623,7 +916,7 @@ paintHero();
    if(q('#landing'))q('#landing').classList.remove('hidden');
    ['#quiz','#result','#couponBox'].forEach(function(s){var e=q(s);if(e)e.classList.add('hidden');});
    window.REVEAL_ON_RESTART.forEach(function(s){var e=q(s);if(e)e.classList.remove('hidden');});
-   var sb=q('#submitBtn'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
+   var sb=q('#gateSubmit'); if(sb){sb.disabled=false; sb.removeAttribute('data-busy'); sb.style.opacity='';}
    var sc=q('#stickyCTA'); if(sc)sc.classList.remove('show');
    var html='<!DOCTYPE html>\n'+c.outerHTML;
    var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download='리얼미_랜딩_소득형.html'; document.body.appendChild(a); a.click(); a.remove();
