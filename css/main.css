@@ -282,7 +282,7 @@
   .brand .tagline{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
   .requiz{background:none;border:0;color:var(--muted);font-size:11px;text-decoration:underline;cursor:pointer;font-family:inherit;padding:2px 0}
-  .requiz-wrap{text-align:left;margin-bottom:2px}
+  .requiz-wrap{text-align:left;margin:-16px 0 6px}
   .requiz:hover{color:var(--gold)}
 
 
@@ -360,3 +360,5 @@
   /* 해석 CTA: 결제 CTA(검정)와 색으로 구분되는 강한 보조 버튼 */
   .cta.consultcta{background:var(--gold) !important;color:#fff !important;border:0 !important;box-shadow:0 12px 30px -14px rgba(0,0,0,.35) !important;font-weight:800}
   .cta.consultcta:hover{filter:brightness(1.06)}
+
+  .cta.consultcta{margin-top:16px}
