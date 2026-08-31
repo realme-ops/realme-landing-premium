@@ -362,3 +362,11 @@
   .cta.consultcta:hover{filter:brightness(1.06)}
 
   .cta.consultcta{margin-top:16px}
+
+  /* 해석 섹션 · 전담 디렉터 */
+  .cintrorow{display:flex;gap:14px;align-items:flex-start}
+  .cintrorow .cintro{flex:1 1 auto;margin:0}
+  .director{flex:0 0 auto;margin:0;width:78px;text-align:center}
+  .director img{width:66px;height:66px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 6px;border:1px solid var(--line)}
+  .director figcaption{font-size:10.5px;line-height:1.35;color:var(--muted)}
+  .director figcaption b{display:block;color:var(--ink);font-size:12px;margin-bottom:1px}

@@ -262,9 +262,15 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
          강한 보상이고, 그 통화가 곧 상담(클로징) 지점이기도 하다. -->
     <div id="consult">
       <div class="sectlabel">진단 해석</div>
-      <h2>점수의 이유는, 사람이 봐야 보입니다</h2>
+      <h2>같은 능력인데도 소개 받는 이성이 다른 이유는?</h2>
       <div id="consultForm">
-        <p class="cintro">지금 쓰는 소개용 사진과 기본 정보를 남기시면, 전문가가 직접 보고 <b>통화로 해석</b>해 드립니다. 순차적으로 연락드립니다.</p>
+        <div class="cintrorow">
+          <p class="cintro">점수를 직접 <b>남녀 1만쌍 이상을 매칭한 전문가</b>가 해석해드립니다. 지금 쓰는 소개용 사진과 기본 정보를 남겨주세요. 순차적으로 연락드립니다.</p>
+          <figure class="director">
+            <img src="images/director.jpg" alt="유이경 전담 디렉터">
+            <figcaption><b>유이경</b><span>전담 디렉터</span></figcaption>
+          </figure>
+        </div>
         <div class="crow">
           <div class="field"><label>나이</label>
             <select id="cAge">
@@ -376,7 +382,6 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
          (코드 표시용 #couponCode 는 제거했고, 이를 참조하는 쪽은 모두 존재 여부를 확인한다) -->
     <div id="couponBox">
       <a class="cta block" id="checkoutLink" href="https://impact-me.real-me.co.kr/secret-checkout" onclick="trkCTA()" style="text-decoration:none;text-align:center">50% 쿠폰으로 쇼룸 예약하기 →</a>
-      <div class="micro" style="text-align:center">예약금 ₩20,000 · 방문 후 불만족 시 전액 환불</div>
     </div>
   </div>
 
@@ -881,7 +886,7 @@ paintHero();
  var bar=document.getElementById('editbar'); if(!bar) return;
  try{ if(/[?&]edit=1|#edit/.test(location.href)) bar.style.display='flex'; }catch(e){}
  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); bar.style.display=(bar.style.display==='flex')?'none':'flex'; } });
- var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.flowline,.gpq,.gpby,.stack li .t,.stack li .v,.consent>span,.micro";
+ var SEL="#result .kicker,#result .sectlabel,#result h2,.baFeature .cap,.baFeature .by,.baverify,.proofcap,.proofstory .pw,.proofstory .ps-line,.hallbanner .cap h3,.hallbanner .cap p,#result details summary,#result details p,.cbody b,.cbody .cprice,.cbadge,.cexp,.coff,#gateSubmit,.roi,.invest .k,.invest p,.guarantee,.tcard .tq,.tcard .tby,.bridge h2,.bridge .osub,.downsell,.head b,.head .anchor,.lane .lh,.lane p,.flowline,.gpq,.gpby,.cintro,.director figcaption,.stack li .t,.stack li .v,.consent>span,.micro";
  function setEd(on){document.querySelectorAll(SEL).forEach(function(el){el.contentEditable=on?'true':'false';});}
  function showEd(on){bar.querySelectorAll('.ed').forEach(function(b){b.classList.toggle('hidden',!on);});}
  function pick(cb){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){if(i.files[0])cb(i.files[0]);};i.click();}
