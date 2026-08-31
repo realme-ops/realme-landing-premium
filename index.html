@@ -545,15 +545,12 @@ function renderResult(){
     document.getElementById('statusFill').style.width=c.st+'%';
     document.getElementById('imageFill').style.width=c.im+'%';},120);
   // 새로고침·재방문 복원: 쿠폰 코드와 결제 링크는 저장소에서 되살린다.
-  // (이게 없으면 재방문자는 "쿠폰코드 —" 를 보고, 결제 링크에 coupon·phone 이 빠진다)
+  // (이게 없으면 재방문자의 결제 링크에 coupon·phone 이 빠진다)
   try{
     var g=JSON.parse(localStorage.getItem(GATE_KEY)||'null');
-    if(g&&g.code){
-      window.__coupon=g.code;
-      var cc=document.getElementById('couponCode'); if(cc)cc.textContent=g.code;
-      var cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(g.code,g.phone||'');
-    }
+    if(g&&g.code)window.__coupon=g.code;
   }catch(e){}
+  syncCheckoutLinks();
   try{if(window.nav)window.nav('result');if(window.saveState)window.saveState();}catch(e){}
   window.scrollTo({top:0,behavior:'auto'});
 }
@@ -583,7 +580,7 @@ function submitGate(){
   window.__coupon=code;
   markGatePassed(code,phone);
   const cc=document.getElementById('couponCode'); if(cc)cc.textContent=code;
-  const cl=document.getElementById('checkoutLink'); if(cl)cl.href=checkoutURL(code,phone);
+  syncCheckoutLinks();
 
   // 구글시트 프리미엄 탭 적재 (전화번호는 여기서만 남고 GA4로는 절대 보내지 않음)
   try{
@@ -753,6 +750,7 @@ function requestConsult(){
     }
   }catch(e){}
 
+  syncCheckoutLinks();   // 나이가 방금 확보됐으니 결제 링크에 age 를 싣는다
   document.getElementById('consultForm').classList.add('hidden');
   const d=document.getElementById('consultDone'); d.classList.remove('hidden');
   d.scrollIntoView({behavior:'smooth',block:'center'});
@@ -796,7 +794,17 @@ function restart(){
 /* ===== 시크릿 예약페이지 이동 + 공유 ===== */
 // 쿠폰 CTA가 향하는 곳: 시크릿 예약(결제) 페이지로 직행
 // phone은 예약페이지가 입력칸에 자동으로 채운 뒤 URL에서 스스로 지웁니다(GA4·기록에 안 남음)
-function checkoutURL(code,phone){
+/* 결제 CTA 는 정적 href 라서, 값이 생기는 시점마다 다시 조립해줘야 한다.
+   호출 시점 셋: 게이트 통과 직후 · 결과 렌더(새로고침 복원) · 해석 신청(나이 확보). */
+function syncCheckoutLinks(){
+  var g=null; try{ g=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+  var code=(g&&g.code)||window.__coupon||'', phone=(g&&g.phone)||'';
+  var ql=''; try{ ql=statusRaw().ql; }catch(e){}
+  var url=checkoutURL(code,phone,ql,window.__consultAge||'');
+  var list=document.querySelectorAll('#checkoutLink, #consultDone a.cta');
+  for(var i=0;i<list.length;i++)list[i].href=url;
+}
+function checkoutURL(code,phone,ql,age){
   var q=window.inboundParams?window.inboundParams():{};
   var p=[];
   p.push('utm_source=premium');
@@ -806,6 +814,11 @@ function checkoutURL(code,phone){
   p.push('landing=premium');
   if(code)p.push('coupon='+encodeURIComponent(code));
   if(phone)p.push('phone='+encodeURIComponent(phone));
+  // 자격 경로. 예약 페이지가 ?ql=a|b 로 "조건표는 이미 통과하셨습니다" 화면을 켠다.
+  // NQ 에게는 그 문장이 거짓이 되므로 파라미터를 붙이지 않는다(예약 페이지 주석과 같은 이유).
+  if(ql==='QL-A')p.push('ql=a'); else if(ql==='QL-B')p.push('ql=b');
+  // 예약 페이지가 나이 입력칸을 자동으로 채운 뒤 URL 에서 스스로 지운다.
+  if(age)p.push('age='+encodeURIComponent(age));
   // 유입 광고 정보는 ad_* 로 따로 실어 보냄 (예약페이지가 utm_source로 유입경로를 판정하기 때문)
   for(var k in q)p.push('ad_'+k.replace('utm_','')+'='+encodeURIComponent(q[k]));
   return 'https://impact-me.real-me.co.kr/secret-checkout?'+p.join('&');
