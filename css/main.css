@@ -342,3 +342,14 @@
   .photofield input[disabled]{opacity:.45;cursor:not-allowed}
   .photofield .micro{margin-top:6px}
   .cdone{text-align:center;font-size:14.5px;margin:6px 0 14px;color:var(--ink)}
+
+  /* ── 게이트 후기 블록 ── */
+  .gproof{margin:16px 0 8px}
+  .gpimg{border-radius:12px;overflow:hidden;line-height:0;border:1px solid var(--line)}
+  .gpimg img{width:100%;height:auto;display:block}
+  .gpq{margin-top:11px;font-size:13.5px;line-height:1.65;color:var(--ink);word-break:keep-all;text-align:center}
+  .gpby{margin-top:5px;font-size:11.5px;color:var(--muted);text-align:center}
+  .gpnote{margin-top:7px;font-size:10.5px;color:var(--muted);opacity:.65;text-align:center}
+
+  .photofield .optb{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
+  .picked{margin-top:6px;font-size:11.5px;color:var(--gold);word-break:break-all}

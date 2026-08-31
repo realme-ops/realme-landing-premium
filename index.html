@@ -49,7 +49,11 @@
     GA4_ID:        "G-TYWS49LKCM",
     META_PIXEL_ID: "468864818533646",
     // 프리미엄 탭 리드 적재용 Apps Script 웹앱 (/exec URL). 비어 있으면 전송하지 않음.
-    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxlTQ_tuq7p7TZeYB_kNllKr9qjjEEr4nGr4jMvvaIfsjOkgEyTFAFbtdPq7KhTqQOL/exec"
+    LEAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbxlTQ_tuq7p7TZeYB_kNllKr9qjjEEr4nGr4jMvvaIfsjOkgEyTFAFbtdPq7KhTqQOL/exec",
+    // 해석용 사진 첨부(선택). 켜기 전에 반드시: ① 개인정보처리방침에 사진 수집·보관·삭제 항목
+    // ② Apps Script v3 패치(사진 분기) ③ Drive 저장 폴더 비공개 권한. (스펙 §10)
+    PHOTO_UPLOAD:  true,
+    PHOTO_MAX_MB:  8
   };
 </script>
 <!-- Google Analytics 4 -->
@@ -193,6 +197,13 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
   <div class="progress"><div class="bar"><i style="width:100%"></i></div><div class="stepn">마지막 단계</div></div>
   <div class="ici-hero"><div class="cap">당신의 인상 점수</div><div><span class="num" id="gateScore">0</span><span class="unit"> / 100</span></div></div>
   <h2 class="ghead">연락처만 남기면 결과 전체가 바로 열립니다</h2>
+  <!-- 번호를 내는 이유가 되는 증거. 폼보다 앞에 둔다.
+       실제 회원 사진·발언(2026-08-31 사용자 확인). 얼굴은 블러 처리된 원본을 그대로 쓴다. -->
+  <div class="gproof">
+    <div class="gpimg"><img src="images/gate-couple.jpg" alt="디렉팅 후 연애 중인 회원"></div>
+    <div class="gpq">"어디서도 제 여자친구가 제일 예쁩니다. 자신감도 얻고 연애도 얻었어요."</div>
+    <div class="gpby">— 31세 금융전문직 김*수</div>
+  </div>
   <div class="field"><label>연락처</label><input id="gPhone" placeholder="010-0000-0000" inputmode="tel"></div>
   <div class="ferr" id="gPhoneErr">연락처를 정확히 입력해 주세요.</div>
   <label class="consent" id="gAgreeWrap"><input type="checkbox" id="gAgree"><span><span class="req">[필수]</span> 연락처 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a> <span style="opacity:.75">(진단 결과 안내 목적 · 언제든 삭제 가능)</span></span></label>
@@ -249,11 +260,13 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
             </select></div>
         </div>
         <div class="field photofield">
-          <label>소개용 사진 <span class="soon">곧 지원</span></label>
-          <input type="file" id="cPhoto" accept="image/*" disabled>
-          <div class="micro">준비 중입니다 — 통화 때 요청드립니다</div>
+          <label>소개용 사진 <span class="optb">선택</span></label>
+          <input type="file" id="cPhoto" accept="image/*,.zip,application/zip,application/x-zip-compressed" multiple>
+          <div class="micro">여러 장이면 <b>zip으로 묶어</b> 올리셔도 됩니다 · 최대 8MB · 상담 해석용으로만 쓰고 요청 시 즉시 삭제합니다</div>
+          <div class="ferr" id="cPhotoErr">파일이 너무 큽니다. 8MB 이하로 올려주세요.</div>
+          <div class="picked" id="cPhotoPicked"></div>
         </div>
-        <label class="consent" id="cAgreeWrap"><input type="checkbox" id="cAgree"><span><span class="req">[필수]</span> 진단 해석을 위한 나이·키 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a></span></label>
+        <label class="consent" id="cAgreeWrap"><input type="checkbox" id="cAgree"><span><span class="req">[필수]</span> 진단 해석을 위한 사진·나이·키 수집·이용에 동의합니다 <a href="https://real-me.co.kr/?mode=privacy" target="_blank" rel="noopener" class="clink">방침 보기</a></span></label>
         <div class="ferr" id="cAgreeErr">개인정보 수집·이용에 동의해 주세요.</div>
         <button class="cta block secondary" id="consultSubmit" onclick="requestConsult()">진단 해석 받기 (통화 5분)</button>
         <div class="micro" style="text-align:center">결제 없이 접수됩니다</div>
@@ -267,11 +280,9 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     <!-- 위협형 금액 프레임 블록 제거 (offers 스킬 가이드) -->
     <div class="lanetitle center">인상 격차가 좁혀진다면?</div>
     <div class="lanes">
-      <!-- 배경 사진 제거: 연애 레인의 사진을 뺀 뒤 한쪽만 사진이라 비대칭이 됐고,
-           바로 위 커플 히어로가 이미 큰 이미지라 여기서 사진을 더 쓸 이유가 없다. -->
-      <div class="lane career hot" id="laneCareer"><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
-      <!-- 배경 사진 제거: 같은 커플 사진이 결과 최상단에 크게 있어 한 화면에 두 번 나온다. -->
-      <div class="lane rel hot" id="laneRel"><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
+      <div class="lane career hot hasbg" id="laneCareer"><div class="lbg" style="background-image: url(&quot;images/lane-01.jpg&quot;);"></div><div class="lh">💼 사회·직업</div><div class="lgain">보이지 않는 프리미엄 GET</div><p class="lquote">“협상 자리도 자신 있습니다. 목표 조건으로 이직 성공!”</p></div>
+      <!-- lane-02 는 결과 최상단 히어로와 같은 사진이라 한 화면에 두 번 나온다 → 다른 사진을 쓴다. -->
+      <div class="lane rel hot hasbg" id="laneRel"><div class="lbg" style="background-image: url(&quot;images/lane-rel.jpg&quot;);"></div><div class="lh">💗 연애·관계</div><div class="lgain">매력 저평가 해소</div><p class="lquote">“이렇게 예쁜 사람이 제 여자친구인 게 신기합니다.”</p></div>
     </div>
 
     <!-- 증거: 가격보다 앞, 결과보다 뒤 (CLAUDE.md §3) -->
@@ -605,6 +616,76 @@ function submitGate(){
   renderResult();
 }
 
+/* ===== 해석용 파일 첨부 (선택) =====
+   이미지는 canvas 로 줄여 보내고, zip 은 줄일 수 없으므로 원본 그대로 보낸다.
+   전송은 sendLead(비콘) 가 아니라 fetch 다 — 비콘은 용량 한계가 있어 파일이 못 나간다. */
+function isZip(f){
+  var n=(f.name||'').toLowerCase();
+  return n.slice(-4)==='.zip' || (f.type||'').indexOf('zip')>-1;
+}
+function fileToDataURL(file){
+  return new Promise(function(resolve){
+    try{ var r=new FileReader();
+      r.onload=function(){ resolve(r.result); };
+      r.onerror=function(){ resolve(null); };
+      r.readAsDataURL(file);
+    }catch(e){ resolve(null); }
+  });
+}
+// 긴 변 1280px · JPEG 0.72. 원본을 그대로 보내면 Apps Script 본문 크기에서 막힌다.
+function resizeImage(file,maxEdge,quality){
+  return new Promise(function(resolve){
+    try{
+      var draw=function(src,w,h){
+        var s=Math.min(1,maxEdge/Math.max(w,h));
+        var c=document.createElement('canvas'); c.width=Math.round(w*s); c.height=Math.round(h*s);
+        c.getContext('2d').drawImage(src,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      if(window.createImageBitmap){
+        createImageBitmap(file,{imageOrientation:'from-image'})
+          .then(function(b){ draw(b,b.width,b.height); })
+          .catch(function(){ resolve(null); });
+      }else{
+        var img=new Image(), u=URL.createObjectURL(file);
+        img.onload=function(){ draw(img,img.naturalWidth,img.naturalHeight); URL.revokeObjectURL(u); };
+        img.onerror=function(){ resolve(null); URL.revokeObjectURL(u); };
+        img.src=u;
+      }
+    }catch(e){ resolve(null); }
+  });
+}
+// 실패·지연이 접수를 막지 않는다: 6초 안에 안 끝나면 그냥 넘어간다.
+function uploadFiles(files,phone){
+  var cfg=window.REALME_CONFIG||{};
+  if(!cfg.PHOTO_UPLOAD||!cfg.LEAD_ENDPOINT||!files||!files.length)return Promise.resolve(false);
+  var jobs=Array.prototype.slice.call(files,0,5).map(function(f){
+    return (isZip(f)?fileToDataURL(f):resizeImage(f,1280,0.72)).then(function(data){
+      if(!data)return false;
+      return fetch(cfg.LEAD_ENDPOINT,{method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({type:'photo',phone:phone,filename:f.name,kind:isZip(f)?'zip':'image',data:data})
+      }).then(function(){return true;}).catch(function(){return false;});
+    });
+  });
+  var timeout=new Promise(function(r){ setTimeout(function(){ r(false); },6000); });
+  return Promise.race([Promise.all(jobs).then(function(a){return a.some(Boolean);}),timeout]).catch(function(){return false;});
+}
+
+// 첨부 파일 표시 + 용량 검사. 넘치면 조용히 버리지 않고 그 자리에서 알려준다.
+(function(){
+  var pf=document.getElementById('cPhoto'); if(!pf)return;
+  pf.addEventListener('change',function(){
+    var max=((window.REALME_CONFIG||{}).PHOTO_MAX_MB||8)*1024*1024;
+    var err=document.getElementById('cPhotoErr'), out=document.getElementById('cPhotoPicked');
+    var total=0, names=[];
+    for(var i=0;i<pf.files.length;i++){ total+=pf.files[i].size; names.push(pf.files[i].name); }
+    if(total>max){ if(err)err.style.display='block'; pf.value=''; if(out)out.textContent=''; return; }
+    if(err)err.style.display='none';
+    if(out)out.textContent=names.length?('첨부됨 · '+names.join(' , ')):'';
+  });
+})();
+
 /* 진단 해석 신청. 번호는 게이트에서 이미 받았으므로 여기서는 나이·키만 받는다.
    type:'update' 로 보내는 이유: 같은 번호로 새 행을 만들면 시트가 DUP 로 조용히 거절해
    이 사람이 해석까지 신청했다는 기록이 남지 않는다(비콘이라 클라이언트는 성공으로 보인다). */
@@ -642,6 +723,17 @@ function requestConsult(){
     if(window.gtag)gtag('event','consult_request',{landing:'premium',ql:r.ql,persona:c.p.name||'',age:age});
   }catch(e){}
   trk('consult_request',{age:age});
+
+  // 첨부는 선택이다. 실패해도 접수를 막지 않는다 — 파일이 없으면 통화 때 요청한다.
+  try{
+    const pf=document.getElementById('cPhoto');
+    if(pf&&pf.files&&pf.files.length){
+      var g2=null; try{ g2=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+      uploadFiles(pf.files,(g2&&g2.phone)||'').then(function(ok){
+        try{ if(window.gtag)gtag('event','consult_photo',{ok:!!ok,count:pf.files.length}); }catch(e){}
+      });
+    }
+  }catch(e){}
 
   document.getElementById('consultForm').classList.add('hidden');
   const d=document.getElementById('consultDone'); d.classList.remove('hidden');
