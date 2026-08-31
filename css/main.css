@@ -370,3 +370,7 @@
   .director img{width:66px;height:66px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 6px;border:1px solid var(--line)}
   .director figcaption{font-size:10.5px;line-height:1.35;color:var(--muted)}
   .director figcaption b{display:block;color:var(--ink);font-size:12px;margin-bottom:1px}
+
+  /* 히어로 단일 사진 (Before/After 대신) */
+  .baFeature .pair.solo{grid-template-columns:1fr}
+  .baFeature .pair.solo figure{aspect-ratio:4/5}
