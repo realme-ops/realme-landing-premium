@@ -126,6 +126,17 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,do
     }catch(e){ return false; }
   }
   window.__isLocal=isLocal;
+  // 검토용 초기화: 로컬에서 ?reset=1 로 열면 게이트 통과 이력과 진행 상태를 지우고 처음부터 시작한다.
+  // (한 번 번호를 내면 결정 12 에 따라 게이트를 건너뛰므로, 검토할 때마다 콘솔을 열어야 했다)
+  try{
+    if(isLocal() && /[?&]reset=1(&|$)/.test(location.search)){
+      localStorage.removeItem('realme_gate_v1');
+      sessionStorage.removeItem('realme_quiz_v1');
+      try{console.info('[REALME] reset=1 — 게이트 이력·진행 상태를 지웠습니다');}catch(e){}
+      var q=location.search.replace(/([?&])reset=1(&|$)/,'$1').replace(/[?&]$/,'');
+      history.replaceState(null,'',location.pathname+q);
+    }
+  }catch(e){}
   window.sendLead=function(obj){
     var url=(window.REALME_CONFIG||{}).LEAD_ENDPOINT;
     if(!url)return;
