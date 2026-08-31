@@ -356,3 +356,7 @@
 
   .flowline{margin:14px 0 4px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px;line-height:1.6;color:var(--muted);text-align:center;word-break:keep-all}
   .flowline b{color:var(--ink)}
+
+  /* 해석 CTA: 결제 CTA(검정)와 색으로 구분되는 강한 보조 버튼 */
+  .cta.consultcta{background:var(--gold) !important;color:#fff !important;border:0 !important;box-shadow:0 12px 30px -14px rgba(0,0,0,.35) !important;font-weight:800}
+  .cta.consultcta:hover{filter:brightness(1.06)}
